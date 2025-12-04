@@ -10,7 +10,7 @@ jobs:
   call-common:
     uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_2dx.yaml@master
     with:
-      GAME_ID: KYS-H5-19985
+      GAME_ID: %GAME_ID%
     secrets:
       TOKEN: ${{ secrets.TOKEN }}
       AWS_ENV: ${{ secrets.AWS_ENV }}
