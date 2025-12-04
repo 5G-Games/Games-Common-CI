@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [dev,uat,test]
+    paths-ignore:
+      - '.github/workflows/**'  # <- 忽略 workflow 目錄下的變更
+
+jobs:
+  call-common:
+    uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_2dx.yaml@master
+    with:
+      GAME_ID: KYS-H5-19985
+    secrets:
+      TOKEN: ${{ secrets.TOKEN }}
+      AWS_ENV: ${{ secrets.AWS_ENV }}
+      CLOUD_FRONT: ${{ secrets.CLOUD_FRONT }}
+      CLOUD_FLARE: ${{ secrets.CLOUD_FLARE }}
+      CDNETWORKS: ${{ secrets.CDNETWORKS }}
+      AKAMAI: ${{ secrets.AKAMAI }}
+      WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}

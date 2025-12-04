@@ -1,18 +1,29 @@
 name: Windows Self-Hosted Runner
 
 on:
-  push:
-    branches:
-      - dev
-      - uat
-      #- stage
-      #- demo
-    paths-ignore:
-      - '.github/workflows/**'  # <- 忽略 workflow 目錄下的變更
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      GAME_ID:
+        required: true
+        type: string
+    secrets:
+      TOKEN:
+        required: true
+      AWS_ENV:
+        required: true
+      CLOUD_FRONT:
+        required: true
+      CLOUD_FLARE:
+        required: true
+      CDNETWORKS:
+        required: true
+      AKAMAI:
+        required: true
+      WEBHOOK_URL:
+        required: true
 
 env: 
-  GAME_ID: 'S5G-H5-99953'
+  GAME_ID: ${{ inputs.GAME_ID }}
   # Cocos Creator Version
   # COCOS_VERSION: 'C:\ProgramData\cocos\editors\Creator\3.7.2\CocosCreator.exe'
   # DEPLOY_STR: creator
@@ -80,15 +91,6 @@ jobs:
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
               ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
               ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
-          ) ELSE IF /I "%GITHUB_REF_NAME%" == "test" (
-              ECHO BRANCH=test>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "demo" (
               ECHO BRANCH=demo>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
@@ -126,7 +128,14 @@ jobs:
               ECHO CDN_CNS_URL=download-sry.figoogoo.com>> %GITHUB_ENV%
               ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
           ) ELSE (
-              EXIT 1
+              ECHO BRANCH=%GITHUB_REF_NAME%>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
           )
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
