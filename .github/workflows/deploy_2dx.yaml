@@ -1,0 +1,282 @@
+name: Windows Self-Hosted Runner
+
+on:
+  push:
+    branches:
+      - dev
+      - uat
+      #- stage
+      #- demo
+    paths-ignore:
+      - '.github/workflows/**'  # <- 忽略 workflow 目錄下的變更
+  workflow_dispatch:
+
+env: 
+  GAME_ID: 'S5G-H5-99953'
+  # Cocos Creator Version
+  # COCOS_VERSION: 'C:\ProgramData\cocos\editors\Creator\3.7.2\CocosCreator.exe'
+  # DEPLOY_STR: creator
+  DEPLOY_STR: 2dx 
+  
+  # repositories
+  GITHUB_DEPLOY: ${{ secrets.TOKEN }}
+  AWS_ENV: ${{ secrets.AWS_ENV }}
+  # purge CDN cache
+  CLOUD_FRONT_API: ${{ secrets.CLOUD_FRONT }}
+  CLOUD_FLARE_API: ${{ secrets.CLOUD_FLARE }}
+  CDNETWORKS_API: ${{ secrets.CDNETWORKS }}
+  AKAMAI_API: ${{ secrets.AKAMAI }}
+
+jobs:
+  dx:
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - name: Slack Notification
+        if: ${{ always() }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        shell: powershell
+        run: |
+          $status = '${{ job.status }}'  # 用單引號直接取得表達式結果
+          $color = if ($status -eq "success") { "#36a64f"
+          } elseif ($status -eq "failure")    { "#d00000"
+          } elseif ($status -eq "cancelled")  { "#f0ba00"
+          } else { "#000000" }
+          
+          $message = "Status: Start`n"
+          $message += "Repository: ${{ github.repository }}`n"
+          $message += "Branch: ${{ github.head_ref || github.ref }}`n"
+          $message += "Trigger: ${{ github.actor }}`n"
+          $message += "Users: ${{ github.triggering_actor	|| 'N/A' }}`n"
+          $message += "Commit: ${{ github.event.head_commit.message || 'N/A' }}`n"
+          $message += "Run: ${{ github.server_url }}/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n"
+          $message += "Compare: ${{ github.event.compare || 'N/A' }}"
+
+          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
+            attachments = @(
+              @{
+                color = $color
+                text = $message
+              }
+            )
+          } | ConvertTo-Json) -ContentType 'application/json'
+      - name: Setup branch env (CMD)
+        run: |
+          IF /I "%GITHUB_REF_NAME%" == "dev" (
+              ECHO BRANCH=dev>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
+          ) ELSE IF /I "%GITHUB_REF_NAME%" == "main" (
+              ECHO BRANCH=main>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
+          ) ELSE IF /I "%GITHUB_REF_NAME%" == "test" (
+              ECHO BRANCH=test>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
+          ) ELSE IF /I "%GITHUB_REF_NAME%" == "demo" (
+              ECHO BRANCH=demo>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://download-hk-demo>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E21L9L76V6OI5M>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=e3daa93112f02404901b395945778dd7>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=>> %GITHUB_ENV%
+          ) ELSE IF /I "%GITHUB_REF_NAME%" == "uat" (
+              ECHO BRANCH=uat>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://download-hk-uat>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E1WC6JK0YZPPS7>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=>> %GITHUB_ENV%
+          ) ELSE IF /I "%GITHUB_REF_NAME%" == "stage" (
+              ECHO BRANCH=stage>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://download-hk.kyslot.com>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E3GCTUVGLK388H>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=e3daa93112f02404901b395945778dd7>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=download-cnw.5gg.dev>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=download-ak.5gg.dev>> %GITHUB_ENV%
+          ) ELSE IF /I "%GITHUB_REF_NAME%" == "prod" (
+              ECHO BRANCH=prod>> %GITHUB_ENV%
+              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+              ECHO S3_URL=s3://download.kyslot.io>> %GITHUB_ENV%
+              ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
+              ECHO DOMAIN_ZONE_ID=5e82a4dc0ea2f1279f0694c74364e7c2>> %GITHUB_ENV%
+              ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
+              ECHO CDN_CNS_URL=download-sry.figoogoo.com>> %GITHUB_ENV%
+              ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
+          ) ELSE (
+              EXIT 1
+          )
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_ENV: ${{ env.GITHUB_ENV }}
+        shell: cmd
+      # install npm 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '22'
+      # romve old workspace.
+      - name: romve old workspace
+        run: |
+          rm -Recurse -Force ${{github.workspace}}\*
+        shell: powershell
+      # set github global configure
+      - name: Configure GitLab Submodule URL with Token
+        run: |
+          git config --global url."https://%GITHUB_DEPLOY%@github.com/".insteadOf "git@github.com:"
+        shell: cmd
+      # clone deploy script
+      - name: clone deploy script
+        run: |
+          git clone https://%GITHUB_DEPLOY%@github.com/5G-Games/publish_tools.git .
+        shell: cmd
+      # clone game repositories
+      - name: clone game repositories
+        run: |
+          git clone --branch %BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID% 
+        shell: cmd
+      # create deploy path
+      - name: create deploy path
+        run: |
+          mkdir publish\%GAME_ID% && mkdir deploy\%GAME_ID% && mkdir temp\%GAME_ID%
+        shell: cmd
+      # npm install module for repositories
+      #- name: npm install module for repositories
+      #  run: |
+      #    cd game\%GAME_ID%
+      #    npm install
+      #  shell: cmd
+
+      # clone submodule repositories
+      - name: clone submodule repositories
+        run: |
+          cd game\%GAME_ID%
+          git submodule update --init --recursive
+        shell: cmd
+
+      # build cocos 2dx-js repositories.
+      - name: build cocos 2dx-js repositories.
+        run: |
+          ECHO [*] CALL cocos.bat compile -s game\%GAME_ID% -p web -m release -o temp\%GAME_ID%
+          CALL cocos.bat compile -s game\%GAME_ID% -p web -m release -o temp\%GAME_ID%
+
+        shell: cmd
+
+      - name: 2dx-js copy dependent packages to publish path
+        run: |
+          IF EXIST "game\%GAME_ID%\lib\*.css" XCOPY /I /Y "game\%GAME_ID%\lib\*.css" "temp\%GAME_ID%\lib\*.css"
+          IF EXIST "game\%GAME_ID%\lib\ProtoBuf.min.js" XCOPY /I /Y "game\%GAME_ID%\lib" "temp\%GAME_ID%\lib"
+          IF EXIST "game\%GAME_ID%\ui\style" XCOPY /I /Y "game\%GAME_ID%\ui\style\*.css" "temp\%GAME_ID%\ui\style\*.css"
+
+          IF EXIST "game\%GAME_ID%\module" XCOPY /I /E /Y "game\%GAME_ID%\module" "temp\%GAME_ID%\module"
+          IF EXIST "game\%GAME_ID%\base" XCOPY /I /E /Y "game\%GAME_ID%\base" "temp\%GAME_ID%\base"
+          IF EXIST "game\%GAME_ID%\browserCacheHelper" XCOPY /I /E /Y "game\%GAME_ID%\browserCacheHelper" "temp\%GAME_ID%\browserCacheHelper"
+
+          node "game\%GAME_ID%\browserCacheHelper\build.js" "temp\%GAME_ID%" "publish\%GAME_ID%"
+        shell: cmd
+        
+      # deploy repositories. part 1.
+      - name: deploy repositories. part 1.
+        run: |
+          CALL sre-config-game.bat %DEPLOY_TYPE% %GAME_ID% publish\%GAME_ID% deploy\%GAME_ID% %DEPLOY_STR%
+        shell: cmd
+      # deploy repositories. part 2.
+      - name: deploy repositories. part 2.
+        run: |
+          get-git-info.exe 5G-Games Games-%GAME_ID% %BRANCH% %github_deploy%
+          copy /Y version.json deploy\%GAME_ID%\
+        shell: cmd
+      # deploy upload s3 bucket
+      - name: deploy upload s3 bucket
+        run: |
+            IF EXIST deploy\%GAME_ID%  XCOPY /I /E /Y  deploy\%GAME_ID% %GAME_ID%
+            upload_project_to_s3_jenkins.exe %S3_URL% %GAME_ID% AWS_ENV ap-east-1
+        shell: cmd
+      # deploy upload s3 bucket
+      - name: deploy upload s3 bucket part 2.
+        run: |
+            IF "%BRANCH%" == "prod" (
+              upload_project_to_s3_jenkins.exe "S3://download-th" %GAME_ID% AWS_ENV ap-southeast-7
+            )
+        shell: cmd
+      # cdn cache prune.
+      - name: cdn cache prune.
+        run: |
+          IF NOT "%CDN_CNS_URL%"=="" (
+              ECHO Processing 
+              siraya_PurgeCache.exe %CDN_CNS_URL% %GAME_ID% CDNETWORKS_API
+          )
+          IF NOT "%CDN_AKA_URL%"=="" (
+              ECHO Processing 
+              akamai_PurgeCache.exe %CDN_AKA_URL% %GAME_ID% AKAMAI_API
+          )
+          IF NOT "%CDN_CFE_URL%"=="" (
+              ECHO Processing 
+              dns_PurgeCache.exe %CLOUD_FLARE_API% %DOMAIN_ZONE_ID% %CDN_CFE_URL% %GAME_ID%
+          )
+          IF NOT "%CLOUD_FRONT_ID%"=="" (
+              ECHO Processing 
+              cloudfront_PurgeCache.exe %GAME_ID% %CLOUD_FRONT_ID% CLOUD_FRONT_API
+          )
+
+          IF "%BRANCH%" == "prod" (
+            ECHO Other Region. Processing...
+            IF NOT "%CLOUD_FRONT_ID%"=="" (
+                ECHO Processing 
+                cloudfront_PurgeCache.exe %GAME_ID% E2L0JORX06PQAQ CLOUD_FRONT_API
+                cloudfront_PurgeCache.exe %GAME_ID% E2DVZJS6SZ2ONK CLOUD_FRONT_API
+            )          
+          )
+        shell: cmd
+
+      - name: Slack Notification
+        if: ${{ always() }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+        shell: powershell
+        run: |
+          $status = '${{ job.status }}'  # 用單引號直接取得表達式結果
+          $color = if ($status -eq "success") { "#36a64f"
+          } elseif ($status -eq "failure")    { "#d00000"
+          } elseif ($status -eq "cancelled")  { "#f0ba00"
+          } else { "#000000" }
+          
+          $message = "Status: $status`n"
+          $message += "Repository: ${{ github.repository }}`n"
+          $message += "Branch: ${{ github.head_ref || github.ref }}`n"
+          $message += "Trigger: ${{ github.actor }}`n"
+          $message += "Users: ${{ github.triggering_actor	|| 'N/A' }}`n"
+          $message += "Commit: ${{ github.event.head_commit.message || 'N/A' }}`n"
+          $message += "Run: ${{ github.server_url }}/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n"
+          $message += "Compare: ${{ github.event.compare || 'N/A' }}"
+
+          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
+            attachments = @(
+              @{
+                color = $color
+                text = $message
+              }
+            )
+          } | ConvertTo-Json) -ContentType 'application/json'
