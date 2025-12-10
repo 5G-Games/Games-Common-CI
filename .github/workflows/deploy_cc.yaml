@@ -188,7 +188,7 @@ jobs:
       
       # 修改 engine.json 中的 CHEAT 設定
       - name: Update CHEAT macro in engine.json
-        if: ${{ env.BRANCH == 'dev' || env.BRANCH == 'prod' || env.BRANCH == 'demo' }}
+        if: ${{ env.BRANCH == 'test' || env.BRANCH == 'prod' || env.BRANCH == 'demo' }}
         run: |
           cd game\%GAME_ID%
           IF NOT EXIST settings\v2\packages\engine.json (
