@@ -186,6 +186,25 @@ jobs:
           git submodule update --init --recursive
         shell: cmd
       
+      # 修改 engine.json 中的 CHEAT 設定
+      - name: Update CHEAT macro in engine.json
+        if: ${{ %BRANCH == 'dev' || %BRANCH == 'prod' || %BRANCH == 'demo' }}
+        run: |
+          cd game\%GAME_ID%
+          IF NOT EXIST settings\v2\packages\engine.json (
+            ECHO 找不到 settings\v2\packages\engine.json，跳過 CHEAT 設定修改
+            EXIT /B 0
+          )
+          
+          REM 使用 PowerShell 讀取 JSON 並修改 CHEAT 值
+          powershell -NoProfile -Command "$json = Get-Content 'settings\v2\packages\engine.json' -Raw | ConvertFrom-Json; $cheatItem = $json.macroCustom | Where-Object { $_.key -eq 'CHEAT' }; if ($cheatItem) { $cheatItem.value = $false; $json | ConvertTo-Json -Depth 10 | Set-Content 'settings\v2\packages\engine.json' -Encoding UTF8; Write-Host '已成功將 CHEAT 設定為 false' } else { Write-Host '未找到 CHEAT 設定項' }"
+          
+          IF %ERRORLEVEL% NEQ 0 (
+            ECHO 處理 engine.json 時發生錯誤
+            EXIT /B %ERRORLEVEL%
+          )
+        shell: cmd
+      
       # 讀取 build-config.json 並替換 index.ejs 中的 %SENTRY_DSN%
       - name: Replace Sentry DSN in index.ejs
         run: |
