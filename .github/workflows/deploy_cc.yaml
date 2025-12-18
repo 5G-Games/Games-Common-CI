@@ -283,7 +283,7 @@ jobs:
       - name: deploy upload s3 bucket part 2.
         run: |
             IF "%BRANCH%" == "prod" (
-              upload_project_to_s3_jenkins.exe "S3://download-th" %GAME_ID% AWS_ENV ap-southeast-7
+              upload_project_to_s3_jenkins.exe "s3://download-th" %GAME_ID% AWS_ENV ap-southeast-7
             )
         shell: cmd
       # cdn cache prune.
