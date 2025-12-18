@@ -5,7 +5,7 @@ on:
     branches: [dev,uat,test]
     paths-ignore:
       - '.github/workflows/**'  # <- 忽略 workflow 目錄下的變更
-
+  workflow_dispatch:
 jobs:
   call-common:
     uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_2dx.yaml@master
