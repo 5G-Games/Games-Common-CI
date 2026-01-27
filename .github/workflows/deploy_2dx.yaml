@@ -22,13 +22,13 @@ on:
       WEBHOOK_URL:
         required: true
 
-env: 
+env:
   GAME_ID: ${{ inputs.GAME_ID }}
   # Cocos Creator Version
   # COCOS_VERSION: 'C:\ProgramData\cocos\editors\Creator\3.7.2\CocosCreator.exe'
   # DEPLOY_STR: creator
-  DEPLOY_STR: 2dx 
-  
+  DEPLOY_STR: 2dx
+
   # repositories
   GITHUB_DEPLOY: ${{ secrets.TOKEN }}
   AWS_ENV: ${{ secrets.AWS_ENV }}
@@ -53,7 +53,7 @@ jobs:
           } elseif ($status -eq "failure")    { "#d00000"
           } elseif ($status -eq "cancelled")  { "#f0ba00"
           } else { "#000000" }
-          
+
           $message = "Status: Start`n"
           $message += "Repository: ${{ github.repository }}`n"
           $message += "Branch: ${{ github.head_ref || github.ref }}`n"
@@ -141,11 +141,11 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_ENV: ${{ env.GITHUB_ENV }}
         shell: cmd
-      # install npm 
+      # install npm
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'
+          node-version: "22"
       # romve old workspace.
       - name: romve old workspace
         run: |
@@ -164,7 +164,7 @@ jobs:
       # clone game repositories
       - name: clone game repositories
         run: |
-          git clone --branch %BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID% 
+          git clone --branch %BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID%
         shell: cmd
       # create deploy path
       - name: create deploy path
@@ -205,7 +205,7 @@ jobs:
 
           node "game\%GAME_ID%\browserCacheHelper\build.js" "temp\%GAME_ID%" "publish\%GAME_ID%"
         shell: cmd
-        
+
       # deploy repositories. part 1.
       - name: deploy repositories. part 1.
         run: |
@@ -220,15 +220,8 @@ jobs:
       # deploy upload s3 bucket
       - name: deploy upload s3 bucket
         run: |
-            IF EXIST deploy\%GAME_ID%  XCOPY /I /E /Y  deploy\%GAME_ID% %GAME_ID%
-            upload_project_to_s3_jenkins.exe %S3_URL% %GAME_ID% AWS_ENV ap-east-1
-        shell: cmd
-      # deploy upload s3 bucket
-      - name: deploy upload s3 bucket part 2.
-        run: |
-            IF "%BRANCH%" == "prod" (
-              upload_project_to_s3_jenkins.exe "S3://download-th" %GAME_ID% AWS_ENV ap-southeast-7
-            )
+          IF EXIST deploy\%GAME_ID%  XCOPY /I /E /Y  deploy\%GAME_ID% %GAME_ID%
+          upload_project_to_s3_jenkins.exe %S3_URL% %GAME_ID% AWS_ENV ap-east-1
         shell: cmd
       # cdn cache prune.
       - name: cdn cache prune.
@@ -271,7 +264,7 @@ jobs:
           } elseif ($status -eq "failure")    { "#d00000"
           } elseif ($status -eq "cancelled")  { "#f0ba00"
           } else { "#000000" }
-          
+
           $message = "Status: $status`n"
           $message += "Repository: ${{ github.repository }}`n"
           $message += "Branch: ${{ github.head_ref || github.ref }}`n"
