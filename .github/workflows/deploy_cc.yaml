@@ -41,35 +41,6 @@ jobs:
   creator:
     runs-on: [self-hosted, Windows, X64]
     steps:
-      - name: Slack Notification
-        if: ${{ always() }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-        shell: powershell
-        run: |
-          $status = '${{ job.status }}'  # 用單引號直接取得表達式結果
-          $color = if ($status -eq "success") { "#36a64f"
-          } elseif ($status -eq "failure")    { "#d00000"
-          } elseif ($status -eq "cancelled")  { "#f0ba00"
-          } else { "#000000" }
-
-          $message = "Status: Start`n"
-          $message += "Repository: ${{ github.repository }}`n"
-          $message += "Branch: ${{ github.head_ref || github.ref }}`n"
-          $message += "Trigger: ${{ github.actor }}`n"
-          $message += "Users: ${{ github.triggering_actor	|| 'N/A' }}`n"
-          $message += "Commit: ${{ github.event.head_commit.message || 'N/A' }}`n"
-          $message += "Run: ${{ github.server_url }}/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n"
-          $message += "Compare: ${{ github.event.compare || 'N/A' }}"
-
-          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
-            attachments = @(
-              @{
-                color = $color
-                text = $message
-              }
-            )
-          } | ConvertTo-Json) -ContentType 'application/json'
       - name: Setup branch env (CMD)
         run: |
           IF /I "%GITHUB_REF_NAME%" == "dev" (
