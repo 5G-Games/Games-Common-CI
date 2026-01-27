@@ -43,7 +43,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Slack Notification
-        if: ${{ env.SLACK == true }}
+        if: ${{ env.SLACK == 'true' }}
         uses: ./.github/actions/slack-notification
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
@@ -296,7 +296,7 @@ jobs:
         shell: cmd
 
       - name: Slack Notification
-        if: ${{ env.SLACK == true }}
+        if: ${{ env.SLACK == 'true' }}
         uses: ./.github/actions/slack-notification
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
