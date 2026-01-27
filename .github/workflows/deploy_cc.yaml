@@ -311,7 +311,7 @@ jobs:
         shell: cmd
 
       - name: Slack Notification
-        if: ${{ always() }}
+        if: ${{ env.SLACK == true }}
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         shell: powershell
