@@ -26,7 +26,7 @@ env:
   # Cocos Creator Version
   COCOS_VERSION: 'C:\ProgramData\cocos\editors\Creator\3.7.2\CocosCreator.exe'
   DEPLOY_STR: creator
-  SLACK: true
+  SLACK: false
   #DEPLOY_STR: 2dx
 
   # repositories
