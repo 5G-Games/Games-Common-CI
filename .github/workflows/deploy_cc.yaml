@@ -44,7 +44,7 @@ jobs:
     steps:
       - name: Slack Notification
         if: ${{ env.SLACK == 'true' }}
-        uses: ./.github/actions/slack-notification
+        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
           job_status: ${{ job.status }}
@@ -297,7 +297,7 @@ jobs:
 
       - name: Slack Notification
         if: ${{ env.SLACK == 'true' }}
-        uses: ./.github/actions/slack-notification
+        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
           job_status: ${{ job.status }}
