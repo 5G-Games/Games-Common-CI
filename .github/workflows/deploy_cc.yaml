@@ -26,7 +26,7 @@ env:
   # Cocos Creator Version
   COCOS_VERSION: 'C:\ProgramData\cocos\editors\Creator\3.7.2\CocosCreator.exe'
   DEPLOY_STR: creator
-  SLACK: false
+  SLACK: true
   #DEPLOY_STR: 2dx
 
   # repositories
@@ -44,33 +44,18 @@ jobs:
     steps:
       - name: Slack Notification
         if: ${{ env.SLACK == true }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-        shell: powershell
-        run: |
-          $status = '${{ job.status }}'  # 用單引號直接取得表達式結果
-          $color = if ($status -eq "success") { "#36a64f"
-          } elseif ($status -eq "failure")    { "#d00000"
-          } elseif ($status -eq "cancelled")  { "#f0ba00"
-          } else { "#000000" }
-
-          $message = "Status: Start`n"
-          $message += "Repository: ${{ github.repository }}`n"
-          $message += "Branch: ${{ github.head_ref || github.ref }}`n"
-          $message += "Trigger: ${{ github.actor }}`n"
-          $message += "Users: ${{ github.triggering_actor	|| 'N/A' }}`n"
-          $message += "Commit: ${{ github.event.head_commit.message || 'N/A' }}`n"
-          $message += "Run: ${{ github.server_url }}/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n"
-          $message += "Compare: ${{ github.event.compare || 'N/A' }}"
-
-          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
-            attachments = @(
-              @{
-                color = $color
-                text = $message
-              }
-            )
-          } | ConvertTo-Json) -ContentType 'application/json'
+        uses: ./.github/actions/slack-notification
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          job_status: ${{ job.status }}
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref || github.ref }}
+          actor: ${{ github.actor }}
+          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
+          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
+          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          compare_url: ${{ github.event.compare || 'N/A' }}
+          status_text: Start
       - name: Setup branch env (CMD)
         run: |
           IF /I "%GITHUB_REF_NAME%" == "dev" (
@@ -312,30 +297,14 @@ jobs:
 
       - name: Slack Notification
         if: ${{ env.SLACK == true }}
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-        shell: powershell
-        run: |
-          $status = '${{ job.status }}'  # 用單引號直接取得表達式結果
-          $color = if ($status -eq "success") { "#36a64f"
-          } elseif ($status -eq "failure")    { "#d00000"
-          } elseif ($status -eq "cancelled")  { "#f0ba00"
-          } else { "#000000" }
-
-          $message = "Status: $status`n"
-          $message += "Repository: ${{ github.repository }}`n"
-          $message += "Branch: ${{ github.head_ref || github.ref }}`n"
-          $message += "Trigger: ${{ github.actor }}`n"
-          $message += "Users: ${{ github.triggering_actor	|| 'N/A' }}`n"
-          $message += "Commit: ${{ github.event.head_commit.message || 'N/A' }}`n"
-          $message += "Run: ${{ github.server_url }}/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n"
-          $message += "Compare: ${{ github.event.compare || 'N/A' }}"
-
-          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
-            attachments = @(
-              @{
-                color = $color
-                text = $message
-              }
-            )
-          } | ConvertTo-Json) -ContentType 'application/json'
+        uses: ./.github/actions/slack-notification
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          job_status: ${{ job.status }}
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref || github.ref }}
+          actor: ${{ github.actor }}
+          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
+          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
+          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          compare_url: ${{ github.event.compare || 'N/A' }}
