@@ -42,37 +42,43 @@ runs:
     - name: Send Slack Notification
       shell: powershell
       run: |
+        $PSDefaultParameterValues['*:Encoding'] = 'utf8'
         [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $OutputEncoding = [System.Text.Encoding]::UTF8
         
-        $status = '${{ inputs.job_status }}'
+        $status = $env:INPUT_JOB_STATUS
         $color = if ($status -eq "success") { "#36a64f"
         } elseif ($status -eq "failure")    { "#d00000"
         } elseif ($status -eq "cancelled")  { "#f0ba00"
         } else { "#000000" }
 
-        $statusText = if ('${{ inputs.status_text }}' -ne '') { '${{ inputs.status_text }}' } else { $status }
+        $statusText = $env:INPUT_STATUS_TEXT
+        if (-not $statusText -or $statusText -eq '') { $statusText = $status }
+        
+        # 直接使用環境變數，PowerShell 會自動處理編碼
         $message = "Status: $statusText`n"
-        $message += "Repository: ${{ inputs.repository }}`n"
-        $message += "Branch: ${{ inputs.branch }}`n"
-        $message += "Trigger: ${{ inputs.actor }}`n"
-        $message += "Users: ${{ inputs.triggering_actor }}`n"
-        $message += "Commit: ${{ inputs.commit_message }}`n"
-        $message += "Run: ${{ inputs.run_url }}`n"
-        $message += "Compare: ${{ inputs.compare_url }}"
+        $message += "Repository: $env:INPUT_REPOSITORY`n"
+        $message += "Branch: $env:INPUT_BRANCH`n"
+        $message += "Trigger: $env:INPUT_ACTOR`n"
+        $message += "Users: $env:INPUT_TRIGGERING_ACTOR`n"
+        $message += "Commit: $env:INPUT_COMMIT_MESSAGE`n"
+        $message += "Run: $env:INPUT_RUN_URL`n"
+        $message += "Compare: $env:INPUT_COMPARE_URL"
 
-        $jsonBody = @{
+        $payload = @{
           attachments = @(
             @{
               color = $color
               text = $message
             }
           )
-        } | ConvertTo-Json -Depth 10 -Compress
+        }
         
-        $utf8Bytes = [System.Text.Encoding]::UTF8.GetBytes($jsonBody)
-        $utf8Body = [System.Text.Encoding]::UTF8.GetString($utf8Bytes)
+        # 使用 UTF-8 編碼轉換 JSON，確保中文字符正確處理
+        $jsonBody = $payload | ConvertTo-Json -Depth 10 -Compress
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        $jsonBytes = $utf8NoBom.GetBytes($jsonBody)
         
-        Invoke-RestMethod -Uri '${{ inputs.webhook_url }}' -Method Post -Body $utf8Body -ContentType 'application/json; charset=utf-8'
+        Invoke-RestMethod -Uri $env:INPUT_WEBHOOK_URL -Method Post -Body $jsonBytes -ContentType 'application/json; charset=utf-8'
 
 
