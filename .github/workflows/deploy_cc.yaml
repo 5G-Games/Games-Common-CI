@@ -83,7 +83,7 @@ jobs:
           actor: ${{ github.actor }}
           triggering_actor: ${{ github.triggering_actor || 'N/A' }}
           commit_message: ${{ github.event.head_commit.message || 'N/A' }}
-          commit_count: 'N/A'
+          commit_count: ${{ env.COMMIT_COUNT || 'N/A' }}
           run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           compare_url: ${{ github.event.compare || 'N/A' }}
           status_text: 'Start'
