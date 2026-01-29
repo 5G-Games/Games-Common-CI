@@ -47,22 +47,6 @@ jobs:
         with:
           github_ref_name: ${{ github.ref_name }}
       
-      - name: Slack Notification - Start
-        if: ${{ env.SLACK == 'true' }}
-        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
-        with:
-          webhook_url: ${{ secrets.WEBHOOK_URL }}
-          job_status: success
-          repository: ${{ github.repository }}
-          branch: ${{ github.head_ref || github.ref }}
-          actor: ${{ github.actor }}
-          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
-          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
-          commit_count: 'N/A'
-          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          compare_url: ${{ github.event.compare || 'N/A' }}
-          status_text: 'Start'
-      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -88,6 +72,22 @@ jobs:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
       
+      - name: Slack Notification - Start
+        if: ${{ env.SLACK == 'true' }}
+        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          job_status: success
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref || github.ref }}
+          actor: ${{ github.actor }}
+          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
+          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
+          commit_count: 'N/A'
+          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          compare_url: ${{ github.event.compare || 'N/A' }}
+          status_text: 'Start'
+
       - name: Create deploy path
         uses: 5G-Games/Games-Common-CI/.github/actions/create-deploy-path@master
         with:
