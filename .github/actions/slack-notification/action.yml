@@ -42,6 +42,9 @@ runs:
     - name: Send Slack Notification
       shell: powershell
       run: |
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $OutputEncoding = [System.Text.Encoding]::UTF8
+        
         $status = '${{ inputs.job_status }}'
         $color = if ($status -eq "success") { "#36a64f"
         } elseif ($status -eq "failure")    { "#d00000"
@@ -58,12 +61,18 @@ runs:
         $message += "Run: ${{ inputs.run_url }}`n"
         $message += "Compare: ${{ inputs.compare_url }}"
 
-        Invoke-RestMethod -Uri '${{ inputs.webhook_url }}' -Method Post -Body (@{
+        $jsonBody = @{
           attachments = @(
             @{
               color = $color
               text = $message
             }
           )
-        } | ConvertTo-Json) -ContentType 'application/json'
+        } | ConvertTo-Json -Depth 10 -Compress
+        
+        $utf8Bytes = [System.Text.Encoding]::UTF8.GetBytes($jsonBody)
+        $utf8Body = [System.Text.Encoding]::UTF8.GetString($utf8Bytes)
+        
+        Invoke-RestMethod -Uri '${{ inputs.webhook_url }}' -Method Post -Body $utf8Body -ContentType 'application/json; charset=utf-8'
+
 
