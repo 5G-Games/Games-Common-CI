@@ -118,7 +118,15 @@ jobs:
           git config --global url."https://%GITHUB_DEPLOY%@github.com/".insteadOf "git@github.com:"
           set BRANCH_NAME=%BRANCH%
           if "%BRANCH_NAME%"=="" set BRANCH_NAME=%GITHUB_REF_NAME%
-          for /f %%i in ('git ls-remote --count https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID%.git refs/heads/%BRANCH_NAME%') do set COMMIT_COUNT=%%i
+          set REPO_URL=https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID%.git
+          set TEMP_DIR=temp_repo_%GAME_ID%_%RANDOM%
+          git clone --depth 1 --branch %BRANCH_NAME% %REPO_URL% %TEMP_DIR%
+          if exist %TEMP_DIR% (
+            cd %TEMP_DIR%
+            for /f %%i in ('git rev-list --count HEAD') do set COMMIT_COUNT=%%i
+            cd ..
+            rmdir /s /q %TEMP_DIR%
+          )
           if not defined COMMIT_COUNT set COMMIT_COUNT=0
           echo COMMIT_COUNT=%COMMIT_COUNT%>> %GITHUB_ENV%
           echo STATUS_TEXT=Build #%COMMIT_COUNT%>> %GITHUB_ENV%
@@ -313,7 +321,7 @@ jobs:
         shell: cmd
 
       - name: Slack Notification - Complete
-        if: ${{ env.SLACK == 'true' }} && always()
+        if: ${{ env.SLACK == 'true' }}
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
