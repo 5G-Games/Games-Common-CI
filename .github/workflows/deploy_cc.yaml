@@ -42,20 +42,6 @@ jobs:
   creator:
     runs-on: [self-hosted, Windows, X64]
     steps:
-      - name: Slack Notification
-        if: ${{ env.SLACK == 'true' }}
-        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
-        with:
-          webhook_url: ${{ secrets.WEBHOOK_URL }}
-          job_status: ${{ job.status }}
-          repository: ${{ github.repository }}
-          branch: ${{ github.head_ref || github.ref }}
-          actor: ${{ github.actor }}
-          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
-          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
-          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          compare_url: ${{ github.event.compare || 'N/A' }}
-          status_text: Start
       - name: Setup branch env (CMD)
         run: |
           IF /I "%GITHUB_REF_NAME%" == "dev" (
@@ -126,6 +112,37 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_ENV: ${{ env.GITHUB_ENV }}
         shell: cmd
+      - name: Get commit count
+        if: ${{ env.SLACK == 'true' }}
+        run: |
+          git config --global url."https://%GITHUB_DEPLOY%@github.com/".insteadOf "git@github.com:"
+          set BRANCH_NAME=%BRANCH%
+          if "%BRANCH_NAME%"=="" set BRANCH_NAME=%GITHUB_REF_NAME%
+          for /f %%i in ('git ls-remote --count https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID%.git refs/heads/%BRANCH_NAME%') do set COMMIT_COUNT=%%i
+          if not defined COMMIT_COUNT set COMMIT_COUNT=0
+          echo COMMIT_COUNT=%COMMIT_COUNT%>> %GITHUB_ENV%
+          echo STATUS_TEXT=Build #%COMMIT_COUNT%>> %GITHUB_ENV%
+        shell: cmd
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_DEPLOY: ${{ secrets.TOKEN }}
+          GAME_ID: ${{ inputs.GAME_ID }}
+          GITHUB_ENV: ${{ env.GITHUB_ENV }}
+      - name: Slack Notification - Start
+        if: ${{ env.SLACK == 'true' }}
+        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          job_status: success
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref || github.ref }}
+          actor: ${{ github.actor }}
+          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
+          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
+          commit_count: ${{ env.COMMIT_COUNT || 'N/A' }}
+          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          compare_url: ${{ github.event.compare || 'N/A' }}
+          status_text: ${{ env.STATUS_TEXT || 'Start' }}
       # install npm
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -295,8 +312,8 @@ jobs:
           )
         shell: cmd
 
-      - name: Slack Notification
-        if: ${{ env.SLACK == 'true' }}
+      - name: Slack Notification - Complete
+        if: ${{ env.SLACK == 'true' }} && always()
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
@@ -306,5 +323,6 @@ jobs:
           actor: ${{ github.actor }}
           triggering_actor: ${{ github.triggering_actor || 'N/A' }}
           commit_message: ${{ github.event.head_commit.message || 'N/A' }}
+          commit_count: ${{ env.COMMIT_COUNT || 'N/A' }}
           run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           compare_url: ${{ github.event.compare || 'N/A' }}

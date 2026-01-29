@@ -24,6 +24,10 @@ inputs:
     description: 'Commit message'
     required: false
     default: 'N/A'
+  commit_count:
+    description: 'Commit count'
+    required: false
+    default: 'N/A'
   run_url:
     description: 'GitHub Actions run URL'
     required: true
@@ -49,6 +53,7 @@ runs:
         INPUT_ACTOR: ${{ inputs.actor }}
         INPUT_TRIGGERING_ACTOR: ${{ inputs.triggering_actor }}
         INPUT_COMMIT_MESSAGE: ${{ inputs.commit_message }}
+        INPUT_COMMIT_COUNT: ${{ inputs.commit_count }}
         INPUT_RUN_URL: ${{ inputs.run_url }}
         INPUT_COMPARE_URL: ${{ inputs.compare_url }}
         INPUT_STATUS_TEXT: ${{ inputs.status_text }}
@@ -71,12 +76,16 @@ runs:
         $commitMessage = $env:INPUT_COMMIT_MESSAGE
         if (-not $commitMessage) { $commitMessage = 'N/A' }
         
+        # 從環境變數讀取 commit count
+        $commitCount = $env:INPUT_COMMIT_COUNT
+        if (-not $commitCount) { $commitCount = 'N/A' }
+        
         $message = "Status: $statusText`n"
         $message += "Repository: $env:INPUT_REPOSITORY`n"
-        $message += "Branch: $env:INPUT_BRANCH`n"
+        $message += "Branch: $env:INPUT_BRANCH ver:$commitCount`n"
+        $message += "Commit: $commitMessage`n"
         $message += "Trigger: $env:INPUT_ACTOR`n"
         $message += "Users: $env:INPUT_TRIGGERING_ACTOR`n"
-        $message += "Commit: $commitMessage`n"
         $message += "Run: $env:INPUT_RUN_URL`n"
         $message += "Compare: $env:INPUT_COMPARE_URL"
 
