@@ -112,30 +112,6 @@ jobs:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           GITHUB_ENV: ${{ env.GITHUB_ENV }}
         shell: cmd
-      - name: Get commit count
-        if: ${{ env.SLACK == 'true' }}
-        run: |
-          git config --global url."https://%GITHUB_DEPLOY%@github.com/".insteadOf "git@github.com:"
-          set BRANCH_NAME=%BRANCH%
-          if "%BRANCH_NAME%"=="" set BRANCH_NAME=%GITHUB_REF_NAME%
-          set REPO_URL=https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID%.git
-          set TEMP_DIR=temp_repo_%GAME_ID%_%RANDOM%
-          git clone --depth 1 --branch %BRANCH_NAME% %REPO_URL% %TEMP_DIR%
-          if exist %TEMP_DIR% (
-            cd %TEMP_DIR%
-            for /f %%i in ('git rev-list --count HEAD') do set COMMIT_COUNT=%%i
-            cd ..
-            rmdir /s /q %TEMP_DIR%
-          )
-          if not defined COMMIT_COUNT set COMMIT_COUNT=0
-          echo COMMIT_COUNT=%COMMIT_COUNT%>> %GITHUB_ENV%
-          echo STATUS_TEXT=Build #%COMMIT_COUNT%>> %GITHUB_ENV%
-        shell: cmd
-        env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_DEPLOY: ${{ secrets.TOKEN }}
-          GAME_ID: ${{ inputs.GAME_ID }}
-          GITHUB_ENV: ${{ env.GITHUB_ENV }}
       - name: Slack Notification - Start
         if: ${{ env.SLACK == 'true' }}
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
@@ -147,10 +123,10 @@ jobs:
           actor: ${{ github.actor }}
           triggering_actor: ${{ github.triggering_actor || 'N/A' }}
           commit_message: ${{ github.event.head_commit.message || 'N/A' }}
-          commit_count: ${{ env.COMMIT_COUNT || 'N/A' }}
+          commit_count: 'N/A'
           run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           compare_url: ${{ github.event.compare || 'N/A' }}
-          status_text: ${{ env.STATUS_TEXT || 'Start' }}
+          status_text: 'Start'
       # install npm
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -175,7 +151,14 @@ jobs:
       - name: clone game repositories
         run: |
           git clone --branch %BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID%
+          cd game\%GAME_ID%
+          for /f %%i in ('git rev-list --count HEAD') do set COMMIT_COUNT=%%i
+          cd ..
+          if not defined COMMIT_COUNT set COMMIT_COUNT=0
+          echo COMMIT_COUNT=%COMMIT_COUNT%>> %GITHUB_ENV%
         shell: cmd
+        env:
+          GITHUB_ENV: ${{ env.GITHUB_ENV }}
       # create deploy path
       - name: create deploy path
         run: |
