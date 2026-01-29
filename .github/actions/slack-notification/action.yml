@@ -41,10 +41,22 @@ runs:
   steps:
     - name: Send Slack Notification
       shell: powershell
+      env:
+        INPUT_WEBHOOK_URL: ${{ inputs.webhook_url }}
+        INPUT_JOB_STATUS: ${{ inputs.job_status }}
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_ACTOR: ${{ inputs.actor }}
+        INPUT_TRIGGERING_ACTOR: ${{ inputs.triggering_actor }}
+        INPUT_COMMIT_MESSAGE: ${{ inputs.commit_message }}
+        INPUT_RUN_URL: ${{ inputs.run_url }}
+        INPUT_COMPARE_URL: ${{ inputs.compare_url }}
+        INPUT_STATUS_TEXT: ${{ inputs.status_text }}
       run: |
         $PSDefaultParameterValues['*:Encoding'] = 'utf8'
         [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $OutputEncoding = [System.Text.Encoding]::UTF8
+        chcp 65001 | Out-Null
         
         $status = $env:INPUT_JOB_STATUS
         $color = if ($status -eq "success") { "#36a64f"
@@ -55,13 +67,16 @@ runs:
         $statusText = $env:INPUT_STATUS_TEXT
         if (-not $statusText -or $statusText -eq '') { $statusText = $status }
         
-        # 直接使用環境變數，PowerShell 會自動處理編碼
+        # 從環境變數讀取 commit message，確保正確處理 UTF-8 編碼
+        $commitMessage = $env:INPUT_COMMIT_MESSAGE
+        if (-not $commitMessage) { $commitMessage = 'N/A' }
+        
         $message = "Status: $statusText`n"
         $message += "Repository: $env:INPUT_REPOSITORY`n"
         $message += "Branch: $env:INPUT_BRANCH`n"
         $message += "Trigger: $env:INPUT_ACTOR`n"
         $message += "Users: $env:INPUT_TRIGGERING_ACTOR`n"
-        $message += "Commit: $env:INPUT_COMMIT_MESSAGE`n"
+        $message += "Commit: $commitMessage`n"
         $message += "Run: $env:INPUT_RUN_URL`n"
         $message += "Compare: $env:INPUT_COMPARE_URL"
 
