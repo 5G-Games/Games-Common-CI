@@ -1,0 +1,17 @@
+name: 'Clone Submodules'
+description: 'Clone submodule repositories'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Clone submodules
+      shell: cmd
+      run: |
+        cd game\%INPUT_GAME_ID%
+        git submodule update --init --recursive
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+

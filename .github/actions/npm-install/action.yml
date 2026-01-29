@@ -1,0 +1,17 @@
+name: 'NPM Install'
+description: 'Install npm modules for repositories'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: npm install
+      shell: cmd
+      run: |
+        cd game\%INPUT_GAME_ID%
+        npm install
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+

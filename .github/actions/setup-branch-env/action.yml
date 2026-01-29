@@ -1,0 +1,79 @@
+name: 'Setup Branch Environment'
+description: 'Setup branch environment variables based on branch name'
+inputs:
+  github_ref_name:
+    description: 'GitHub ref name'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup branch env
+      shell: cmd
+      run: |
+        IF /I "%INPUT_GITHUB_REF_NAME%" == "dev" (
+            ECHO BRANCH=dev>> %GITHUB_ENV%
+            ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
+            ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+            ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
+            ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+            ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+            ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
+            ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
+        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "main" (
+            ECHO BRANCH=main>> %GITHUB_ENV%
+            ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+            ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+            ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
+            ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+            ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+            ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
+            ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
+        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "demo" (
+            ECHO BRANCH=demo>> %GITHUB_ENV%
+            ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-hk-demo>> %GITHUB_ENV%
+            ECHO CLOUD_FRONT_ID=E21L9L76V6OI5M>> %GITHUB_ENV%
+            ECHO DOMAIN_ZONE_ID=e3daa93112f02404901b395945778dd7>> %GITHUB_ENV%
+            ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
+            ECHO CDN_CNS_URL=>> %GITHUB_ENV%
+            ECHO CDN_AKA_URL=>> %GITHUB_ENV%
+        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "uat" (
+            ECHO BRANCH=uat>> %GITHUB_ENV%
+            ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-hk-uat>> %GITHUB_ENV%
+            ECHO CLOUD_FRONT_ID=E1WC6JK0YZPPS7>> %GITHUB_ENV%
+            ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+            ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+            ECHO CDN_CNS_URL=>> %GITHUB_ENV%
+            ECHO CDN_AKA_URL=>> %GITHUB_ENV%
+        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "stage" (
+            ECHO BRANCH=stage>> %GITHUB_ENV%
+            ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-hk.kyslot.com>> %GITHUB_ENV%
+            ECHO CLOUD_FRONT_ID=E3GCTUVGLK388H>> %GITHUB_ENV%
+            ECHO DOMAIN_ZONE_ID=e3daa93112f02404901b395945778dd7>> %GITHUB_ENV%
+            ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
+            ECHO CDN_CNS_URL=download-cnw.5gg.dev>> %GITHUB_ENV%
+            ECHO CDN_AKA_URL=download-ak.5gg.dev>> %GITHUB_ENV%
+        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "prod" (
+            ECHO BRANCH=prod>> %GITHUB_ENV%
+            ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download.kyslot.io>> %GITHUB_ENV%
+            ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
+            ECHO DOMAIN_ZONE_ID=5e82a4dc0ea2f1279f0694c74364e7c2>> %GITHUB_ENV%
+            ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
+            ECHO CDN_CNS_URL=download-sry.figoogoo.com>> %GITHUB_ENV%
+            ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
+        ) ELSE (
+            ECHO BRANCH=%INPUT_GITHUB_REF_NAME%>> %GITHUB_ENV%
+            ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
+            ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+            ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
+            ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
+            ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
+            ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
+            ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
+        )
+      env:
+        INPUT_GITHUB_REF_NAME: ${{ inputs.github_ref_name }}
+

@@ -1,0 +1,27 @@
+name: 'Build Cocos Mobile'
+description: 'Build cocos creator repositories for web-mobile'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+  cocos_version:
+    description: 'Cocos Creator version path'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Build web-mobile
+      shell: cmd
+      run: |
+        echo cd game\%INPUT_GAME_ID% >> build.bat
+        echo git restore --source=HEAD --staged --worktree assets >> build.bat
+        echo CALL %INPUT_COCOS_VERSION% --no-cache --clear-cache --project . --build "platform=web-mobile;debug=false;md5Cache=true" >> build.bat
+
+        CALL build.bat
+
+        if %ERRORLEVEL%==36 exit 0
+        if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_COCOS_VERSION: ${{ inputs.cocos_version }}
+

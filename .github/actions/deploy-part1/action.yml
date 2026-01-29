@@ -1,0 +1,24 @@
+name: 'Deploy Part 1'
+description: 'Deploy repositories part 1'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+  deploy_type:
+    description: 'Deploy type'
+    required: true
+  deploy_str:
+    description: 'Deploy string'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Deploy part 1
+      shell: cmd
+      run: |
+        CALL sre-config-game.bat %INPUT_DEPLOY_TYPE% %INPUT_GAME_ID% publish\%INPUT_GAME_ID% deploy\%INPUT_GAME_ID% %INPUT_DEPLOY_STR%
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_DEPLOY_TYPE: ${{ inputs.deploy_type }}
+        INPUT_DEPLOY_STR: ${{ inputs.deploy_str }}
+

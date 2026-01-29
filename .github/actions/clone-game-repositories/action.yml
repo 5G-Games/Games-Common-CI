@@ -1,0 +1,29 @@
+name: 'Clone Game Repositories'
+description: 'Clone game repositories and get commit count'
+inputs:
+  github_deploy:
+    description: 'GitHub deploy token'
+    required: true
+  game_id:
+    description: 'Game ID'
+    required: true
+  branch:
+    description: 'Branch name'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Clone game repositories
+      shell: cmd
+      run: |
+        git clone --branch %INPUT_BRANCH% https://%INPUT_GITHUB_DEPLOY%@github.com/5G-Games/Games-%INPUT_GAME_ID% game\%INPUT_GAME_ID%
+        cd game\%INPUT_GAME_ID%
+        for /f %%i in ('git rev-list --count HEAD') do set COMMIT_COUNT=%%i
+        cd ..
+        if not defined COMMIT_COUNT set COMMIT_COUNT=0
+        echo COMMIT_COUNT=%COMMIT_COUNT%>> %GITHUB_ENV%
+      env:
+        INPUT_GITHUB_DEPLOY: ${{ inputs.github_deploy }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+

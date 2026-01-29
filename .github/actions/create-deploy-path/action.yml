@@ -1,0 +1,16 @@
+name: 'Create Deploy Path'
+description: 'Create deploy directories'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Create deploy path
+      shell: cmd
+      run: |
+        mkdir publish\%INPUT_GAME_ID% && mkdir deploy\%INPUT_GAME_ID% && mkdir temp\%INPUT_GAME_ID%
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+

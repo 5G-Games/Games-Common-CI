@@ -1,0 +1,10 @@
+name: 'Cleanup Workspace'
+description: 'Remove old workspace files'
+runs:
+  using: 'composite'
+  steps:
+    - name: Remove old workspace
+      shell: powershell
+      run: |
+        rm -Recurse -Force ${{github.workspace}}\*
+
