@@ -42,6 +42,12 @@ jobs:
   creator:
     runs-on: [self-hosted, Windows, X64]
     steps:
+      - name: Clean build dir
+        run: |
+          $path = "$env:USERPROFILE\.CocosCreator"
+          if (Test-Path $path) { Remove-Item -Recurse -Force $path }
+
+
       - name: Setup branch env
         uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@master
         with:
