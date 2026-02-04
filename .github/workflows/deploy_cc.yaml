@@ -116,11 +116,10 @@ jobs:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
       
-      - name: Build Cocos Desktop
-        uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-desktop@master
-        with:
-          game_id: ${{ inputs.GAME_ID }}
-          cocos_version: ${{ env.COCOS_VERSION }}
+      - name: Clean build dir
+        run: |
+          if exist build rmdir /s /q build
+
       
       - name: Build Cocos Mobile
         uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@master
