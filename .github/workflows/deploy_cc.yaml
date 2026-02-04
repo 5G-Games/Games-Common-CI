@@ -42,10 +42,15 @@ jobs:
   creator:
     runs-on: [self-hosted, Windows, X64]
     steps:
-      - name: Clean build dir
+      - name: Clean Cocos Creator cache
         run: |
           $path = "$env:USERPROFILE\.CocosCreator"
-          if (Test-Path $path) { Remove-Item -Recurse -Force $path }
+          if (Test-Path $path) { 
+            Remove-Item -Recurse -Force $path
+            Write-Host "Successfully deleted: $path"
+          } else {
+            Write-Host "Directory does not exist: $path"
+          }
 
 
       - name: Setup branch env
