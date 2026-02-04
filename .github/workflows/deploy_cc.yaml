@@ -51,6 +51,15 @@ jobs:
           } else {
             Write-Host "Directory does not exist: $path"
           }
+      - name: Clean Cocos Creator cache (temp)
+        run: |
+          $path = "$env:USERPROFILE\AppData\Local\Temp\CocosCreator\3.7.2\builder\engine"
+          if (Test-Path $path) { 
+            Remove-Item -Recurse -Force $path
+            Write-Host "Successfully deleted: $path"
+          } else {
+            Write-Host "Directory does not exist: $path"
+          }
 
 
       - name: Setup branch env
