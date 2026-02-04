@@ -1,0 +1,38 @@
+name: 'Replace Sentry DSN'
+description: 'Replace Sentry DSN and tracing API in index.ejs'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+  branch:
+    description: 'Branch name'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Replace Sentry DSN
+      shell: cmd
+      run: |
+        cd game\%INPUT_GAME_ID%
+        IF NOT EXIST build-config.json (
+            ECHO 找不到 build-config.json，跳過 Sentry DSN 替換
+            EXIT /B 0
+        )
+        IF NOT EXIST build-templates\web-mobile\index.ejs (
+            ECHO 找不到 build-templates\web-mobile\index.ejs
+            EXIT /B 1
+        )
+
+        REM 使用 PowerShell 讀取 JSON 並替換檔案內容
+        powershell -NoProfile -Command "$config = Get-Content 'build-config.json' -Raw | ConvertFrom-Json; $dsn = if ($config.dsn) { $config.dsn } else { '' }; $content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%SENTRY_DSN%%') { $newContent = $content -replace '%%SENTRY_DSN%%', $dsn; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%SENTRY_DSN%% 為: ' + $dsn) } else { Write-Host 'index.ejs 中未找到 %%SENTRY_DSN%% 標記' }"
+        powershell -NoProfile -Command "$config = Get-Content 'build-config.json' -Raw | ConvertFrom-Json; $tracing_api = if ($config.tracing_api) { $config.tracing_api } else { '' }; $content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%TRACING_API%%') { $newContent = $content -replace '%%TRACING_API%%', $tracing_api; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%TRACING_API%% 為: ' + $tracing_api) } else { Write-Host 'index.ejs 中未找到 %%TRACING_API%% 標記' }"
+        powershell -NoProfile -Command "$content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%BRANCH%%') {$branch = $env:INPUT_BRANCH; $newContent = $content -replace '%%BRANCH%%', $branch; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%BRANCH%% 為: ' + $branch) } else { Write-Host 'index.ejs 中未找到 %%BRANCH%% 標記' }"
+
+        IF %ERRORLEVEL% NEQ 0 (
+          ECHO 處理檔案時發生錯誤
+          EXIT /B %ERRORLEVEL%
+        )
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+

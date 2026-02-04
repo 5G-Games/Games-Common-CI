@@ -1,0 +1,21 @@
+name: 'Copy Packages'
+description: 'Copy dependent packages to publish path'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Copy packages
+      shell: cmd
+      run: |
+        cd game\%INPUT_GAME_ID%
+        XCOPY /I /E /Y "build\web-mobile" "..\..\publish\%INPUT_GAME_ID%"
+
+        IF EXIST "lib\*.css" XCOPY /I /Y "lib\*.css" "..\..\publish\%INPUT_GAME_ID%\lib\"
+        IF EXIST "lib\ProtoBuf.min.js" XCOPY /I /Y "lib\ProtoBuf.min.js" "..\..\publish\%INPUT_GAME_ID%\lib\"
+        IF EXIST "ui\style\*.css" XCOPY /I /Y "ui\style\*.css" "..\..\publish\%INPUT_GAME_ID%\ui\style\"
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+

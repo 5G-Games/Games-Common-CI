@@ -1,0 +1,21 @@
+name: 'Upload S3'
+description: 'Upload to S3 bucket'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+  s3_url:
+    description: 'S3 URL'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Upload to S3
+      shell: cmd
+      run: |
+        IF EXIST deploy\%INPUT_GAME_ID%  XCOPY /I /E /Y  deploy\%INPUT_GAME_ID% %INPUT_GAME_ID%
+        upload_project_to_s3_jenkins.exe %INPUT_S3_URL% %INPUT_GAME_ID% AWS_ENV ap-east-1
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_S3_URL: ${{ inputs.s3_url }}
+

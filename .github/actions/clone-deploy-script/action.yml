@@ -1,0 +1,16 @@
+name: 'Clone Deploy Script'
+description: 'Clone deploy script repository'
+inputs:
+  github_deploy:
+    description: 'GitHub deploy token'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Clone deploy script
+      shell: cmd
+      run: |
+        git clone https://%INPUT_GITHUB_DEPLOY%@github.com/5G-Games/publish_tools.git .
+      env:
+        INPUT_GITHUB_DEPLOY: ${{ inputs.github_deploy }}
+

@@ -1,0 +1,25 @@
+name: 'Deploy Part 2'
+description: 'Deploy repositories part 2'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+  branch:
+    description: 'Branch name'
+    required: true
+  github_deploy:
+    description: 'GitHub deploy token'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Deploy part 2
+      shell: cmd
+      run: |
+        get-git-info.exe 5G-Games Games-%INPUT_GAME_ID% %INPUT_BRANCH% %INPUT_GITHUB_DEPLOY%
+        copy /Y version.json deploy\%INPUT_GAME_ID%\
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_GITHUB_DEPLOY: ${{ inputs.github_deploy }}
+

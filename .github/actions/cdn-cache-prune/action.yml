@@ -1,0 +1,74 @@
+name: 'CDN Cache Prune'
+description: 'Purge CDN cache'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+  branch:
+    description: 'Branch name'
+    required: true
+  cdn_cns_url:
+    description: 'CDN CNS URL'
+    required: false
+    default: ''
+  cdn_aka_url:
+    description: 'CDN AKA URL'
+    required: false
+    default: ''
+  cdn_cfe_url:
+    description: 'CDN CFE URL'
+    required: false
+    default: ''
+  cloud_front_id:
+    description: 'CloudFront ID'
+    required: false
+    default: ''
+  cloud_flare_api:
+    description: 'CloudFlare API'
+    required: false
+    default: ''
+  domain_zone_id:
+    description: 'Domain Zone ID'
+    required: false
+    default: ''
+runs:
+  using: 'composite'
+  steps:
+    - name: CDN cache prune
+      shell: cmd
+      run: |
+        IF NOT "%INPUT_CDN_CNS_URL%"=="" (
+            ECHO Processing 
+            siraya_PurgeCache.exe %INPUT_CDN_CNS_URL% %INPUT_GAME_ID% CDNETWORKS_API
+        )
+        IF NOT "%INPUT_CDN_AKA_URL%"=="" (
+            ECHO Processing 
+            akamai_PurgeCache.exe %INPUT_CDN_AKA_URL% %INPUT_GAME_ID% AKAMAI_API
+        )
+        IF NOT "%INPUT_CDN_CFE_URL%"=="" (
+            ECHO Processing 
+            dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_DOMAIN_ZONE_ID% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID%
+        )
+        IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
+            ECHO Processing 
+            cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_API
+        )
+
+        IF "%INPUT_BRANCH%" == "prod" (
+          ECHO Other Region. Processing...
+          IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
+              ECHO Processing 
+              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2L0JORX06PQAQ CLOUD_FRONT_API
+              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2DVZJS6SZ2ONK CLOUD_FRONT_API
+          )          
+        )
+      env:
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_CDN_CNS_URL: ${{ inputs.cdn_cns_url }}
+        INPUT_CDN_AKA_URL: ${{ inputs.cdn_aka_url }}
+        INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
+        INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
+        INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
+        INPUT_DOMAIN_ZONE_ID: ${{ inputs.domain_zone_id }}
+

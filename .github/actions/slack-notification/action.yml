@@ -24,6 +24,10 @@ inputs:
     description: 'Commit message'
     required: false
     default: 'N/A'
+  commit_count:
+    description: 'Commit count'
+    required: false
+    default: 'N/A'
   run_url:
     description: 'GitHub Actions run URL'
     required: true
@@ -41,29 +45,64 @@ runs:
   steps:
     - name: Send Slack Notification
       shell: powershell
+      env:
+        INPUT_WEBHOOK_URL: ${{ inputs.webhook_url }}
+        INPUT_JOB_STATUS: ${{ inputs.job_status }}
+        INPUT_REPOSITORY: ${{ inputs.repository }}
+        INPUT_BRANCH: ${{ inputs.branch }}
+        INPUT_ACTOR: ${{ inputs.actor }}
+        INPUT_TRIGGERING_ACTOR: ${{ inputs.triggering_actor }}
+        INPUT_COMMIT_MESSAGE: ${{ inputs.commit_message }}
+        INPUT_COMMIT_COUNT: ${{ inputs.commit_count }}
+        INPUT_RUN_URL: ${{ inputs.run_url }}
+        INPUT_COMPARE_URL: ${{ inputs.compare_url }}
+        INPUT_STATUS_TEXT: ${{ inputs.status_text }}
       run: |
-        $status = '${{ inputs.job_status }}'
+        $PSDefaultParameterValues['*:Encoding'] = 'utf8'
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $OutputEncoding = [System.Text.Encoding]::UTF8
+        chcp 65001 | Out-Null
+        
+        $status = $env:INPUT_JOB_STATUS
         $color = if ($status -eq "success") { "#36a64f"
         } elseif ($status -eq "failure")    { "#d00000"
         } elseif ($status -eq "cancelled")  { "#f0ba00"
         } else { "#000000" }
 
-        $statusText = if ('${{ inputs.status_text }}' -ne '') { '${{ inputs.status_text }}' } else { $status }
+        $statusText = $env:INPUT_STATUS_TEXT
+        if (-not $statusText -or $statusText -eq '') { $statusText = $status }
+        
+        # 從環境變數讀取 commit message，確保正確處理 UTF-8 編碼
+        $commitMessage = $env:INPUT_COMMIT_MESSAGE
+        if (-not $commitMessage) { $commitMessage = 'N/A' }
+        
+        # 從環境變數讀取 commit count
+        $commitCount = $env:INPUT_COMMIT_COUNT
+        if (-not $commitCount) { $commitCount = 'N/A' }
+        
         $message = "Status: $statusText`n"
-        $message += "Repository: ${{ inputs.repository }}`n"
-        $message += "Branch: ${{ inputs.branch }}`n"
-        $message += "Trigger: ${{ inputs.actor }}`n"
-        $message += "Users: ${{ inputs.triggering_actor }}`n"
-        $message += "Commit: ${{ inputs.commit_message }}`n"
-        $message += "Run: ${{ inputs.run_url }}`n"
-        $message += "Compare: ${{ inputs.compare_url }}"
+        $message += "Repository: $env:INPUT_REPOSITORY`n"
+        $message += "Branch: $env:INPUT_BRANCH ver:$commitCount`n"
+        $message += "Commit: $commitMessage`n"
+        $message += "Trigger: $env:INPUT_ACTOR`n"
+        $message += "Users: $env:INPUT_TRIGGERING_ACTOR`n"
+        $message += "Run: $env:INPUT_RUN_URL`n"
+        $message += "Compare: $env:INPUT_COMPARE_URL"
 
-        Invoke-RestMethod -Uri '${{ inputs.webhook_url }}' -Method Post -Body (@{
+        $payload = @{
           attachments = @(
             @{
               color = $color
               text = $message
             }
           )
-        } | ConvertTo-Json) -ContentType 'application/json'
+        }
+        
+        # 使用 UTF-8 編碼轉換 JSON，確保中文字符正確處理
+        $jsonBody = $payload | ConvertTo-Json -Depth 10 -Compress
+        $utf8NoBom = New-Object System.Text.UTF8Encoding $false
+        $jsonBytes = $utf8NoBom.GetBytes($jsonBody)
+        
+        Invoke-RestMethod -Uri $env:INPUT_WEBHOOK_URL -Method Post -Body $jsonBytes -ContentType 'application/json; charset=utf-8'
+
 

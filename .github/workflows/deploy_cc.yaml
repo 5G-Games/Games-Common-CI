@@ -42,260 +42,130 @@ jobs:
   creator:
     runs-on: [self-hosted, Windows, X64]
     steps:
-      - name: Slack Notification
-        if: ${{ env.SLACK == 'true' }}
-        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
+      - name: Setup branch env
+        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@master
         with:
-          webhook_url: ${{ secrets.WEBHOOK_URL }}
-          job_status: ${{ job.status }}
-          repository: ${{ github.repository }}
-          branch: ${{ github.head_ref || github.ref }}
-          actor: ${{ github.actor }}
-          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
-          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
-          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          compare_url: ${{ github.event.compare || 'N/A' }}
-          status_text: Start
-      - name: Setup branch env (CMD)
-        run: |
-          IF /I "%GITHUB_REF_NAME%" == "dev" (
-              ECHO BRANCH=dev>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
-          ) ELSE IF /I "%GITHUB_REF_NAME%" == "main" (
-              ECHO BRANCH=main>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
-          ) ELSE IF /I "%GITHUB_REF_NAME%" == "demo" (
-              ECHO BRANCH=demo>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://download-hk-demo>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E21L9L76V6OI5M>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=e3daa93112f02404901b395945778dd7>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=>> %GITHUB_ENV%
-          ) ELSE IF /I "%GITHUB_REF_NAME%" == "uat" (
-              ECHO BRANCH=uat>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://download-hk-uat>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E1WC6JK0YZPPS7>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=>> %GITHUB_ENV%
-          ) ELSE IF /I "%GITHUB_REF_NAME%" == "stage" (
-              ECHO BRANCH=stage>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://download-hk.kyslot.com>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3GCTUVGLK388H>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=e3daa93112f02404901b395945778dd7>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=download-cnw.5gg.dev>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.dev>> %GITHUB_ENV%
-          ) ELSE IF /I "%GITHUB_REF_NAME%" == "prod" (
-              ECHO BRANCH=prod>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://download.kyslot.io>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=5e82a4dc0ea2f1279f0694c74364e7c2>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=download-sry.figoogoo.com>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
-          ) ELSE (
-              ECHO BRANCH=%GITHUB_REF_NAME%>> %GITHUB_ENV%
-              ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
-              ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
-              ECHO DOMAIN_ZONE_ID=7a3335f392db3cfec005a3fb9ca06d10>> %GITHUB_ENV%
-              ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
-          )
-        env:
-          GITHUB_REF_NAME: ${{ github.ref_name }}
-          GITHUB_ENV: ${{ env.GITHUB_ENV }}
-        shell: cmd
-      # install npm
+          github_ref_name: ${{ github.ref_name }}
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "22"
-      # romve old workspace.
-      - name: romve old workspace
-        run: |
-          rm -Recurse -Force ${{github.workspace}}\*
-        shell: powershell
-      # set github global configure
-      - name: Configure GitLab Submodule URL with Token
-        run: |
-          git config --global url."https://%GITHUB_DEPLOY%@github.com/".insteadOf "git@github.com:"
-        shell: cmd
-      # clone deploy script
-      - name: clone deploy script
-        run: |
-          git clone https://%GITHUB_DEPLOY%@github.com/5G-Games/publish_tools.git .
-        shell: cmd
-      # clone game repositories
-      - name: clone game repositories
-        run: |
-          git clone --branch %BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID%
-        shell: cmd
-      # create deploy path
-      - name: create deploy path
-        run: |
-          mkdir publish\%GAME_ID% && mkdir deploy\%GAME_ID% && mkdir temp\%GAME_ID%
-        shell: cmd
+      
+      - name: Cleanup workspace
+        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@master
+      
+      - name: Configure Git
+        uses: 5G-Games/Games-Common-CI/.github/actions/configure-git@master
+        with:
+          github_deploy: ${{ secrets.TOKEN }}
+      
+      - name: Clone deploy script
+        uses: 5G-Games/Games-Common-CI/.github/actions/clone-deploy-script@master
+        with:
+          github_deploy: ${{ secrets.TOKEN }}
+      
+      - name: Clone game repositories
+        uses: 5G-Games/Games-Common-CI/.github/actions/clone-game-repositories@master
+        with:
+          github_deploy: ${{ secrets.TOKEN }}
+          game_id: ${{ inputs.GAME_ID }}
+          branch: ${{ env.BRANCH }}
+      
+      - name: Slack Notification - Start
+        if: ${{ env.SLACK == 'true' }}
+        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          job_status: success
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref || github.ref }}
+          actor: ${{ github.actor }}
+          triggering_actor: ${{ github.triggering_actor || 'N/A' }}
+          commit_message: ${{ github.event.head_commit.message || 'N/A' }}
+          commit_count: ${{ env.COMMIT_COUNT || 'N/A' }}
+          run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          compare_url: ${{ github.event.compare || 'N/A' }}
+          status_text: 'Start'
 
-      #要修改#--------------------------------
-      # npm install module for repositories
-      - name: npm install module for repositories
-        run: |
-          cd game\%GAME_ID%
-          npm install
-        shell: cmd
-
-      # clone submodule repositories
-      - name: clone submodule repositories
-        run: |
-          cd game\%GAME_ID%
-          git submodule update --init --recursive
-        shell: cmd
-
-      # 修改 engine.json 中的 CHEAT 設定
-      - name: Update CHEAT macro in engine.json
+      - name: Create deploy path
+        uses: 5G-Games/Games-Common-CI/.github/actions/create-deploy-path@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+      
+      - name: npm install
+        uses: 5G-Games/Games-Common-CI/.github/actions/npm-install@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+      
+      - name: Clone submodules
+        uses: 5G-Games/Games-Common-CI/.github/actions/clone-submodules@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+      
+      - name: Update CHEAT config
         if: ${{ env.BRANCH == 'stage' || env.BRANCH == 'prod' || env.BRANCH == 'demo' }}
-        run: |
-          cd game\%GAME_ID%
-          IF NOT EXIST settings\v2\packages\engine.json (
-            ECHO 找不到 settings\v2\packages\engine.json，跳過 CHEAT 設定修改
-            EXIT /B 0
-          )
-
-          REM 使用 PowerShell 讀取 JSON 並修改 CHEAT 值
-          powershell -NoProfile -Command "$json = Get-Content 'settings\v2\packages\engine.json' -Raw | ConvertFrom-Json; $cheatItem = $json.macroCustom | Where-Object { $_.key -eq 'CHEAT' }; if ($cheatItem) { $cheatItem.value = $false; $json | ConvertTo-Json -Depth 10 | Set-Content 'settings\v2\packages\engine.json' -Encoding UTF8; Write-Host '已成功將 CHEAT 設定為 false' } else { Write-Host '未找到 CHEAT 設定項' }"
-
-          IF %ERRORLEVEL% NEQ 0 (
-            ECHO 處理 engine.json 時發生錯誤
-            EXIT /B %ERRORLEVEL%
-          )
-        shell: cmd
-
-      # 讀取 build-config.json 並替換 index.ejs 中的 %SENTRY_DSN%
-      - name: Replace Sentry DSN in index.ejs
-        run: |
-          cd game\%GAME_ID%
-          IF NOT EXIST build-config.json (
-            ECHO 找不到 build-config.json，跳過 Sentry DSN 替換
-            EXIT /B 0
-          )
-          IF NOT EXIST build-templates\web-mobile\index.ejs (
-            ECHO 找不到 build-templates\web-mobile\index.ejs
-            EXIT /B 1
-          )
-
-          REM 使用 PowerShell 讀取 JSON 並替換檔案內容
-          powershell -NoProfile -Command "$config = Get-Content 'build-config.json' -Raw | ConvertFrom-Json; $dsn = if ($config.dsn) { $config.dsn } else { '' }; $content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%SENTRY_DSN%%') { $newContent = $content -replace '%%SENTRY_DSN%%', $dsn; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%SENTRY_DSN%% 為: ' + $dsn) } else { Write-Host 'index.ejs 中未找到 %%SENTRY_DSN%% 標記' }"
-          powershell -NoProfile -Command "$config = Get-Content 'build-config.json' -Raw | ConvertFrom-Json; $tracing_api = if ($config.tracing_api) { $config.tracing_api } else { '' }; $content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%TRACING_API%%') { $newContent = $content -replace '%%TRACING_API%%', $tracing_api; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%TRACING_API%% 為: ' + $tracing_api) } else { Write-Host 'index.ejs 中未找到 %%TRACING_API%% 標記' }"
-          powershell -NoProfile -Command "$content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%BRANCH%%') {$branch = $env:BRANCH; $newContent = $content -replace '%%BRANCH%%', $branch; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%BRANCH%% 為: ' + $branch) } else { Write-Host 'index.ejs 中未找到 %%BRANCH%% 標記' }"
-
-          IF %ERRORLEVEL% NEQ 0 (
-            ECHO 處理檔案時發生錯誤
-            EXIT /B %ERRORLEVEL%
-          )
-        shell: cmd
-
-      # build cocos creator repositories. web-destop
-      - name: build cocos creator repositories. web-destop
-        run: |
-          echo cd game\%GAME_ID% >> build.bat
-          echo CALL %COCOS_VERSION% --project . --build "stage=build;" >> build.bat
-
-          CALL build.bat
-
-          if %ERRORLEVEL%==36 exit 0
-          if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
-        shell: cmd
-      # build cocos creator repositories web-moible
-      - name: build cocos creator repositories web-moible
-        run: |
-          echo cd game\%GAME_ID% >> build.bat
-          echo git restore --source=HEAD --staged --worktree assets >> build.bat
-          echo CALL %COCOS_VERSION% --no-cache --clear-cache --project . --build "platform=web-mobile;debug=false;md5Cache=true" >> build.bat
-
-          CALL build.bat
-
-          if %ERRORLEVEL%==36 exit 0
-          if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
-        shell: cmd
-      # copy dependent packages to publish path
-      - name: copy dependent packages to publish path
-        run: |
-          cd game\%GAME_ID%
-          XCOPY /I /E /Y "build\web-mobile" "..\..\publish\%GAME_ID%"
-
-          IF EXIST "lib\*.css" XCOPY /I /Y "lib\*.css" "..\..\publish\%GAME_ID%\lib\"
-          IF EXIST "lib\ProtoBuf.min.js" XCOPY /I /Y "lib\ProtoBuf.min.js" "..\..\publish\%GAME_ID%\lib\"
-          IF EXIST "ui\style\*.css" XCOPY /I /Y "ui\style\*.css" "..\..\publish\%GAME_ID%\ui\style\"
-        shell: cmd
-      # deploy repositories. part 1.
-      - name: deploy repositories. part 1.
-        run: |
-          CALL sre-config-game.bat %DEPLOY_TYPE% %GAME_ID% publish\%GAME_ID% deploy\%GAME_ID% %DEPLOY_STR%
-        shell: cmd
-      # deploy repositories. part 2.
-      - name: deploy repositories. part 2.
-        run: |
-          get-git-info.exe 5G-Games Games-%GAME_ID% %BRANCH% %github_deploy%
-          copy /Y version.json deploy\%GAME_ID%\
-        shell: cmd
-      # deploy upload s3 bucket
-      - name: deploy upload s3 bucket
-        run: |
-          IF EXIST deploy\%GAME_ID%  XCOPY /I /E /Y  deploy\%GAME_ID% %GAME_ID%
-          upload_project_to_s3_jenkins.exe %S3_URL% %GAME_ID% AWS_ENV ap-east-1
-        shell: cmd
-      # cdn cache prune.
-      - name: cdn cache prune.
-        run: |
-          IF NOT "%CDN_CNS_URL%"=="" (
-              ECHO Processing 
-              siraya_PurgeCache.exe %CDN_CNS_URL% %GAME_ID% CDNETWORKS_API
-          )
-          IF NOT "%CDN_AKA_URL%"=="" (
-              ECHO Processing 
-              akamai_PurgeCache.exe %CDN_AKA_URL% %GAME_ID% AKAMAI_API
-          )
-          IF NOT "%CDN_CFE_URL%"=="" (
-              ECHO Processing 
-              dns_PurgeCache.exe %CLOUD_FLARE_API% %DOMAIN_ZONE_ID% %CDN_CFE_URL% %GAME_ID%
-          )
-          IF NOT "%CLOUD_FRONT_ID%"=="" (
-              ECHO Processing 
-              cloudfront_PurgeCache.exe %GAME_ID% %CLOUD_FRONT_ID% CLOUD_FRONT_API
-          )
-
-          IF "%BRANCH%" == "prod" (
-            ECHO Other Region. Processing...
-            IF NOT "%CLOUD_FRONT_ID%"=="" (
-                ECHO Processing 
-                cloudfront_PurgeCache.exe %GAME_ID% E2L0JORX06PQAQ CLOUD_FRONT_API
-                cloudfront_PurgeCache.exe %GAME_ID% E2DVZJS6SZ2ONK CLOUD_FRONT_API
-            )          
-          )
-        shell: cmd
-
-      - name: Slack Notification
+        uses: 5G-Games/Games-Common-CI/.github/actions/update-cheat-config@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          branch: ${{ env.BRANCH }}
+      
+      - name: Replace Sentry DSN
+        uses: 5G-Games/Games-Common-CI/.github/actions/replace-sentry-dsn@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          branch: ${{ env.BRANCH }}
+      
+      - name: Build Cocos Desktop
+        uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-desktop@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          cocos_version: ${{ env.COCOS_VERSION }}
+      
+      - name: Build Cocos Mobile
+        uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          cocos_version: ${{ env.COCOS_VERSION }}
+      
+      - name: Copy packages
+        uses: 5G-Games/Games-Common-CI/.github/actions/copy-packages@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+      
+      - name: Deploy part 1
+        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part1@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          deploy_type: ${{ env.DEPLOY_TYPE }}
+          deploy_str: ${{ env.DEPLOY_STR }}
+      
+      - name: Deploy part 2
+        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part2@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          branch: ${{ env.BRANCH }}
+          github_deploy: ${{ secrets.TOKEN }}
+      
+      - name: Upload S3
+        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          s3_url: ${{ env.S3_URL }}
+      
+      - name: CDN cache prune
+        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@master
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+          branch: ${{ env.BRANCH }}
+          cdn_cns_url: ${{ env.CDN_CNS_URL }}
+          cdn_aka_url: ${{ env.CDN_AKA_URL }}
+          cdn_cfe_url: ${{ env.CDN_CFE_URL }}
+          cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
+          cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
+          domain_zone_id: ${{ env.DOMAIN_ZONE_ID }}
+      
+      - name: Slack Notification - Complete
         if: ${{ env.SLACK == 'true' }}
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
         with:
@@ -306,5 +176,6 @@ jobs:
           actor: ${{ github.actor }}
           triggering_actor: ${{ github.triggering_actor || 'N/A' }}
           commit_message: ${{ github.event.head_commit.message || 'N/A' }}
+          commit_count: ${{ env.COMMIT_COUNT || 'N/A' }}
           run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           compare_url: ${{ github.event.compare || 'N/A' }}
