@@ -43,23 +43,24 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Clean Cocos Creator cache
-    run: |
-      $path = "$env:USERPROFILE\.CocosCreator"
-      if (Test-Path $path) { 
-        Remove-Item -Recurse -Force $path
-        Write-Host "Successfully deleted: $path"
-      } else {
-        Write-Host "Directory does not exist: $path"
-      }
-  - name: Clean Cocos Creator cache (temp)
-    run: |
-      $path = "$env:USERPROFILE\AppData\Local\Temp\CocosCreator\3.7.2\builder\engine"
-      if (Test-Path $path) { 
-        Remove-Item -Recurse -Force $path
-        Write-Host "Successfully deleted: $path"
-      } else {
-        Write-Host "Directory does not exist: $path"
-      }
+        run: |
+          $path = "$env:USERPROFILE\.CocosCreator"
+          if (Test-Path $path) { 
+            Remove-Item -Recurse -Force $path
+            Write-Host "Successfully deleted: $path"
+          } else {
+            Write-Host "Directory does not exist: $path"
+          }
+      - name: Clean Cocos Creator cache (temp)
+        run: |
+          $path = "$env:USERPROFILE\AppData\Local\Temp\CocosCreator\3.7.2\builder\engine"
+          if (Test-Path $path) { 
+            Remove-Item -Recurse -Force $path
+            Write-Host "Successfully deleted: $path"
+          } else {
+            Write-Host "Directory does not exist: $path"
+          }
+
 
       - name: Setup branch env
         uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@master
