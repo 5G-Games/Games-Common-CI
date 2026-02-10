@@ -2,15 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [dev,uat,test]
+    branches: [dev, uat, test, "3.8.8"]
     paths-ignore:
-      - '.github/workflows/**'  # <- 忽略 workflow 目錄下的變更
+      - ".github/workflows/**" # <- 忽略 workflow 目錄下的變更
   workflow_dispatch:
 jobs:
   call-common:
     uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_cc.yaml@master
     with:
       GAME_ID: %GAME_ID%
+      COCOS_CREATOR_VERSION: ${{ github.ref_name == '3.8.8' && '3.8.8' || '' }}
     secrets:
       TOKEN: ${{ secrets.TOKEN }}
       AWS_ENV: ${{ secrets.AWS_ENV }}
