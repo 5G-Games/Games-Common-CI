@@ -202,8 +202,9 @@ jobs:
           IF EXIST "game\%GAME_ID%\module" XCOPY /I /E /Y "game\%GAME_ID%\module" "temp\%GAME_ID%\module"
           IF EXIST "game\%GAME_ID%\base" XCOPY /I /E /Y "game\%GAME_ID%\base" "temp\%GAME_ID%\base"
           IF EXIST "game\%GAME_ID%\browserCacheHelper" XCOPY /I /E /Y "game\%GAME_ID%\browserCacheHelper" "temp\%GAME_ID%\browserCacheHelper"
+          IF EXIST "game\%GAME_ID%\base\browserCacheHelper" XCOPY /I /E /Y "game\%GAME_ID%\base\browserCacheHelper" "temp\%GAME_ID%\browserCacheHelper"
 
-          node "game\%GAME_ID%\browserCacheHelper\build.js" "temp\%GAME_ID%" "publish\%GAME_ID%"
+          IF EXIST "temp\%GAME_ID%\browserCacheHelper\build.js" node "temp\%GAME_ID%\browserCacheHelper\build.js" "temp\%GAME_ID%" "publish\%GAME_ID%"
         shell: cmd
 
       # deploy repositories. part 1.
