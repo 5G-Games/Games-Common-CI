@@ -181,6 +181,9 @@ jobs:
           cdnetworks_api: ${{ secrets.CDNETWORKS }}
           akamai_api: ${{ secrets.AKAMAI }}
 
+      - name: Cleanup workspace
+        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@master
+
       - name: Slack Notification - Complete
         if: ${{ env.SLACK == 'true' }}
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@master
