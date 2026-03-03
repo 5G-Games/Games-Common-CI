@@ -181,6 +181,9 @@ jobs:
           cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
           cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
           domain_zone_id: ${{ env.DOMAIN_ZONE_ID }}
+          cloud_front_api: ${{ secrets.CLOUD_FRONT }}
+          cdnetworks_api: ${{ secrets.CDNETWORKS }}
+          akamai_api: ${{ secrets.AKAMAI }}
 
       - name: Slack Notification - Complete
         if: ${{ env.SLACK == 'true' }}

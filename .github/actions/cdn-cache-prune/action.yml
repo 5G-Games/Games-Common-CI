@@ -31,6 +31,18 @@ inputs:
     description: 'Domain Zone ID'
     required: false
     default: ''
+  cloud_front_api:
+    description: 'CloudFront API (secret)'
+    required: false
+    default: ''
+  cdnetworks_api:
+    description: 'CDNetworks API (secret)'
+    required: false
+    default: ''
+  akamai_api:
+    description: 'Akamai API (secret)'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
@@ -38,19 +50,19 @@ runs:
       shell: cmd
       run: |
         IF NOT "%INPUT_CDN_CNS_URL%"=="" (
-            ECHO Processing 
+            ECHO Processing %INPUT_CDN_CNS_URL%
             siraya_PurgeCache.exe %INPUT_CDN_CNS_URL% %INPUT_GAME_ID% CDNETWORKS_API
         )
         IF NOT "%INPUT_CDN_AKA_URL%"=="" (
-            ECHO Processing 
+            ECHO Processing %INPUT_CDN_AKA_URL%
             akamai_PurgeCache.exe %INPUT_CDN_AKA_URL% %INPUT_GAME_ID% AKAMAI_API
         )
         IF NOT "%INPUT_CDN_CFE_URL%"=="" (
-            ECHO Processing 
+            ECHO Processing %INPUT_CLOUD_FLARE_API%
             dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_DOMAIN_ZONE_ID% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID%
         )
         IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
-            ECHO Processing 
+            ECHO Processing %INPUT_CLOUD_FRONT_ID%
             cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_API
         )
 
@@ -71,4 +83,6 @@ runs:
         INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
         INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
         INPUT_DOMAIN_ZONE_ID: ${{ inputs.domain_zone_id }}
-
+        CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
+        CDNETWORKS_API: ${{ inputs.cdnetworks_api }}
+        AKAMAI_API: ${{ inputs.akamai_api }}
