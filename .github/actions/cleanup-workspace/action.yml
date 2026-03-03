@@ -6,6 +6,7 @@ runs:
     - name: Remove old workspace
       shell: powershell
       run: |
-        echo "Removing workspace: ${{runner.workspace}}"
-        rm -Recurse -Force ${{runner.workspace}}
+        cd ${{runner.workspace}}
+        echo "Removing workspace: ${{runner.workspace}}\*"
+        rm -Recurse -Force ${{runner.workspace}}\*
 
