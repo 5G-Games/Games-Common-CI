@@ -145,13 +145,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "22"
+          node-version: '22'
       # remove old workspace.
       - name: remove old workspace
         run: |
-          cd ${{runner.workspace}}
-          echo "Removing workspace: ${{runner.workspace}}\*"
-          rm -Recurse -Force ${{runner.workspace}}\*
+          rm -Recurse -Force ${{github.workspace}}
         shell: powershell
       # set github global configure
       - name: Configure GitLab Submodule URL with Token
