@@ -6,4 +6,4 @@ runs:
     - name: Remove old workspace
       shell: powershell
       run: |
-        rm -Recurse -Force ${{github.workspace}}
+        rm -Recurse -Force ${{github.workspace}}\*

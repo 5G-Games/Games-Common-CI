@@ -149,7 +149,7 @@ jobs:
       # remove old workspace.
       - name: remove old workspace
         run: |
-          rm -Recurse -Force ${{github.workspace}}
+          rm -Recurse -Force ${{github.workspace}}\*
         shell: powershell
       # set github global configure
       - name: Configure GitLab Submodule URL with Token
