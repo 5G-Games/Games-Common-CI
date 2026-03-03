@@ -64,7 +64,6 @@ jobs:
             Write-Host "Directory does not exist: $path"
           }
 
-
       - name: Setup branch env
         uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@master
         with:
@@ -73,10 +72,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "22"
-
-      - name: Cleanup workspace
-        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@master
+          node-version: '22'
 
       - name: Configure Git
         uses: 5G-Games/Games-Common-CI/.github/actions/configure-git@master
@@ -109,7 +105,7 @@ jobs:
           commit_count: ${{ env.COMMIT_COUNT || 'N/A' }}
           run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           compare_url: ${{ github.event.compare || 'N/A' }}
-          status_text: "Start"
+          status_text: 'Start'
 
       - name: Create deploy path
         uses: 5G-Games/Games-Common-CI/.github/actions/create-deploy-path@master
