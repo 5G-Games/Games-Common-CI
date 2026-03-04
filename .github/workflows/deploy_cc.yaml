@@ -161,7 +161,7 @@ jobs:
           github_deploy: ${{ secrets.TOKEN }}
 
       - name: Upload S3
-        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@master
+        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@test_upload
         with:
           game_id: ${{ inputs.GAME_ID }}
           s3_url: ${{ env.S3_URL }}
