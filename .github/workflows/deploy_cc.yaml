@@ -74,6 +74,9 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Cleanup workspace before build
+        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@master
+
       - name: Configure Git
         uses: 5G-Games/Games-Common-CI/.github/actions/configure-git@master
         with:
@@ -181,7 +184,7 @@ jobs:
           cdnetworks_api: ${{ secrets.CDNETWORKS }}
           akamai_api: ${{ secrets.AKAMAI }}
 
-      - name: Cleanup workspace
+      - name: Cleanup workspace after build
         uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@master
 
       - name: Slack Notification - Complete
