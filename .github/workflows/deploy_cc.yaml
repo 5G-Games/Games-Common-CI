@@ -144,6 +144,13 @@ jobs:
           game_id: ${{ inputs.GAME_ID }}
           cocos_version: ${{ env.COCOS_VERSION }}
 
+      - name: build ZIP
+        run: |
+          $script = "game\${{ inputs.GAME_ID }}\build-templates\scripts\build-zip.js"
+          if (Test-Path $script) {
+            node $script
+          }
+
       - name: Copy packages
         uses: 5G-Games/Games-Common-CI/.github/actions/copy-packages@master
         with:
