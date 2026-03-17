@@ -132,8 +132,8 @@ jobs:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
 
-      - name: Replace Sentry DSN
-        uses: 5G-Games/Games-Common-CI/.github/actions/replace-sentry-dsn@master
+      - name: Replace Build Config
+        uses: 5G-Games/Games-Common-CI/.github/actions/replace-build-config@master
         with:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
