@@ -24,8 +24,8 @@ inputs:
     description: 'Commit message'
     required: false
     default: 'N/A'
-  commit_count:
-    description: 'Commit count'
+  version_hash:
+    description: 'Version hash (game-base-template)'
     required: false
     default: 'N/A'
   run_url:
@@ -53,7 +53,7 @@ runs:
         INPUT_ACTOR: ${{ inputs.actor }}
         INPUT_TRIGGERING_ACTOR: ${{ inputs.triggering_actor }}
         INPUT_COMMIT_MESSAGE: ${{ inputs.commit_message }}
-        INPUT_COMMIT_COUNT: ${{ inputs.commit_count }}
+        INPUT_VERSION_HASH: ${{ inputs.version_hash }}
         INPUT_RUN_URL: ${{ inputs.run_url }}
         INPUT_COMPARE_URL: ${{ inputs.compare_url }}
         INPUT_STATUS_TEXT: ${{ inputs.status_text }}
@@ -76,13 +76,13 @@ runs:
         $commitMessage = $env:INPUT_COMMIT_MESSAGE
         if (-not $commitMessage) { $commitMessage = 'N/A' }
         
-        # 從環境變數讀取 commit count
-        $commitCount = $env:INPUT_COMMIT_COUNT
-        if (-not $commitCount) { $commitCount = 'N/A' }
-        
+        # 從環境變數讀取 version hash
+        $versionHash = $env:INPUT_VERSION_HASH
+        if (-not $versionHash) { $versionHash = 'N/A' }
+
         $message = "Status: $statusText`n"
         $message += "Repository: $env:INPUT_REPOSITORY`n"
-        $message += "Branch: $env:INPUT_BRANCH ver:$commitCount`n"
+        $message += "Branch: $env:INPUT_BRANCH ver:$versionHash`n"
         $message += "Commit: $commitMessage`n"
         $message += "Trigger: $env:INPUT_ACTOR`n"
         $message += "Users: $env:INPUT_TRIGGERING_ACTOR`n"
