@@ -14,17 +14,12 @@ runs:
       shell: cmd
       run: |
         cd game\%INPUT_GAME_ID%
-        IF NOT EXIST build-config.json (
-            ECHO 找不到 build-config.json，跳過替換
-            EXIT /B 0
-        )
         IF NOT EXIST build-templates\web-mobile\index.ejs (
             ECHO 找不到 build-templates\web-mobile\index.ejs
             EXIT /B 1
         )
 
         REM 使用 PowerShell 讀取 JSON 並替換檔案內容
-        powershell -NoProfile -Command "$config = Get-Content 'build-config.json' -Raw | ConvertFrom-Json; $tracing_api = if ($config.tracing_api) { $config.tracing_api } else { '' }; $content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%TRACING_API%%') { $newContent = $content -replace '%%TRACING_API%%', $tracing_api; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%TRACING_API%% 為: ' + $tracing_api) } else { Write-Host 'index.ejs 中未找到 %%TRACING_API%% 標記' }"
         powershell -NoProfile -Command "$content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%BRANCH%%') {$branch = $env:INPUT_BRANCH; $newContent = $content -replace '%%BRANCH%%', $branch; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%BRANCH%% 為: ' + $branch) } else { Write-Host 'index.ejs 中未找到 %%BRANCH%% 標記' }"
         powershell -NoProfile -Command "$gameCommit = (git rev-parse --short HEAD); $content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%GAME_COMMIT%%') { $newContent = $content -replace '%%GAME_COMMIT%%', $gameCommit; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%GAME_COMMIT%% 為: ' + $gameCommit) } else { Write-Host 'index.ejs 中未找到 %%GAME_COMMIT%% 標記' }"
         powershell -NoProfile -Command "$baseCommit = (git -C assets\base rev-parse --short HEAD); $content = Get-Content 'build-templates\web-mobile\index.ejs' -Raw -Encoding UTF8; if ($content -match '%%BASE_COMMIT%%') { $newContent = $content -replace '%%BASE_COMMIT%%', $baseCommit; [System.IO.File]::WriteAllText((Resolve-Path 'build-templates\web-mobile\index.ejs'), $newContent, [System.Text.Encoding]::UTF8); Write-Host ('已成功替換 index.ejs 中的 %%BASE_COMMIT%% 為: ' + $baseCommit) } else { Write-Host 'index.ejs 中未找到 %%BASE_COMMIT%% 標記' }"
