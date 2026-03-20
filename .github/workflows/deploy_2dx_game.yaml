@@ -2,15 +2,33 @@ name: CI
 
 on:
   push:
-    branches: [dev,uat,test]
+    branches: [dev, uat, test]
     paths-ignore:
       - '.github/workflows/**'  # <- 忽略 workflow 目錄下的變更
   workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署環境'
+        required: false
+        type: choice
+        default: ''
+        options:
+          - ''
+          - demo
+          - stage
+          - prod
+      tag:
+        description: 'Tag 名稱'
+        required: false
+        type: string
+        default: ''
 jobs:
   call-common:
-    uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_2dx.yaml@master
+    uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_2dx.yaml@new_deploy
     with:
       GAME_ID: %GAME_ID%
+      ENVIRONMENT: ${{ inputs.environment || '' }}
+      TAG: ${{ inputs.tag || '' }}
     secrets:
       TOKEN: ${{ secrets.TOKEN }}
       AWS_ENV: ${{ secrets.AWS_ENV }}

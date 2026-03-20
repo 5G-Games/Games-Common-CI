@@ -6,6 +6,14 @@ on:
       GAME_ID:
         required: true
         type: string
+      ENVIRONMENT:
+        required: false
+        type: string
+        default: ''
+      TAG:
+        required: false
+        type: string
+        default: ''
     secrets:
       TOKEN:
         required: true
@@ -54,9 +62,12 @@ jobs:
           } elseif ($status -eq "cancelled")  { "#f0ba00"
           } else { "#000000" }
 
+          $tag = '${{ inputs.TAG }}'
+
           $message = "Status: Start`n"
           $message += "Repository: ${{ github.repository }}`n"
           $message += "Branch: ${{ github.head_ref || github.ref }}`n"
+          if ($tag -and $tag -ne '') { $message += "Tag: $tag`n" }
           $message += "Trigger: ${{ github.actor }}`n"
           $message += "Users: ${{ github.triggering_actor	|| 'N/A' }}`n"
           $message += "Commit: ${{ github.event.head_commit.message || 'N/A' }}`n"
@@ -73,6 +84,11 @@ jobs:
           } | ConvertTo-Json) -ContentType 'application/json'
       - name: Setup branch env (CMD)
         run: |
+          REM If environment input is provided, use it; otherwise use github_ref_name
+          IF NOT "%DEPLOY_ENVIRONMENT%"=="" (
+              SET "GITHUB_REF_NAME=%DEPLOY_ENVIRONMENT%"
+          )
+
           IF /I "%GITHUB_REF_NAME%" == "dev" (
               ECHO BRANCH=dev>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
@@ -139,6 +155,7 @@ jobs:
           )
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
+          DEPLOY_ENVIRONMENT: ${{ inputs.ENVIRONMENT }}
           GITHUB_ENV: ${{ env.GITHUB_ENV }}
         shell: cmd
       # install npm
@@ -165,6 +182,14 @@ jobs:
       - name: clone game repositories
         run: |
           git clone --branch %BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID%
+          IF NOT "%DEPLOY_TAG%"=="" (
+              ECHO Checking out tag: %DEPLOY_TAG%
+              cd game\%GAME_ID%
+              git checkout tags/%DEPLOY_TAG%
+              cd ..\..
+          )
+        env:
+          DEPLOY_TAG: ${{ inputs.TAG }}
         shell: cmd
       # create deploy path
       - name: create deploy path
@@ -266,9 +291,12 @@ jobs:
           } elseif ($status -eq "cancelled")  { "#f0ba00"
           } else { "#000000" }
 
+          $tag = '${{ inputs.TAG }}'
+
           $message = "Status: $status`n"
           $message += "Repository: ${{ github.repository }}`n"
           $message += "Branch: ${{ github.head_ref || github.ref }}`n"
+          if ($tag -and $tag -ne '') { $message += "Tag: $tag`n" }
           $message += "Trigger: ${{ github.actor }}`n"
           $message += "Users: ${{ github.triggering_actor	|| 'N/A' }}`n"
           $message += "Commit: ${{ github.event.head_commit.message || 'N/A' }}`n"

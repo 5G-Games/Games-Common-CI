@@ -1,16 +1,27 @@
 name: 'Setup Branch Environment'
-description: 'Setup branch environment variables based on branch name'
+description: 'Setup branch environment variables based on branch name or environment input'
 inputs:
   github_ref_name:
     description: 'GitHub ref name'
     required: true
+  environment:
+    description: 'Deploy environment (demo/stage/prod). If provided, overrides branch-based detection.'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
     - name: Setup branch env
       shell: cmd
       run: |
-        IF /I "%INPUT_GITHUB_REF_NAME%" == "dev" (
+        REM If environment input is provided, use it; otherwise use github_ref_name
+        IF NOT "%INPUT_ENVIRONMENT%"=="" (
+            SET "REF_NAME=%INPUT_ENVIRONMENT%"
+        ) ELSE (
+            SET "REF_NAME=%INPUT_GITHUB_REF_NAME%"
+        )
+
+        IF /I "%REF_NAME%" == "dev" (
             ECHO BRANCH=dev>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
             ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
@@ -19,7 +30,7 @@ runs:
             ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
             ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
             ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
-        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "main" (
+        ) ELSE IF /I "%REF_NAME%" == "main" (
             ECHO BRANCH=main>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
             ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
@@ -28,7 +39,7 @@ runs:
             ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
             ECHO CDN_CNS_URL=download-cnw.5gg.win>> %GITHUB_ENV%
             ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
-        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "demo" (
+        ) ELSE IF /I "%REF_NAME%" == "demo" (
             ECHO BRANCH=demo>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
             ECHO S3_URL=s3://download-hk-demo>> %GITHUB_ENV%
@@ -37,7 +48,7 @@ runs:
             ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
             ECHO CDN_CNS_URL=>> %GITHUB_ENV%
             ECHO CDN_AKA_URL=>> %GITHUB_ENV%
-        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "uat" (
+        ) ELSE IF /I "%REF_NAME%" == "uat" (
             ECHO BRANCH=uat>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
             ECHO S3_URL=s3://download-hk-uat>> %GITHUB_ENV%
@@ -46,7 +57,7 @@ runs:
             ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
             ECHO CDN_CNS_URL=>> %GITHUB_ENV%
             ECHO CDN_AKA_URL=>> %GITHUB_ENV%
-        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "stage" (
+        ) ELSE IF /I "%REF_NAME%" == "stage" (
             ECHO BRANCH=stage>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
             ECHO S3_URL=s3://download-hk.kyslot.com>> %GITHUB_ENV%
@@ -55,7 +66,7 @@ runs:
             ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
             ECHO CDN_CNS_URL=download-cnw.5gg.dev>> %GITHUB_ENV%
             ECHO CDN_AKA_URL=download-ak.5gg.dev>> %GITHUB_ENV%
-        ) ELSE IF /I "%INPUT_GITHUB_REF_NAME%" == "prod" (
+        ) ELSE IF /I "%REF_NAME%" == "prod" (
             ECHO BRANCH=prod>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
             ECHO S3_URL=s3://download.kyslot.io>> %GITHUB_ENV%
@@ -65,7 +76,7 @@ runs:
             ECHO CDN_CNS_URL=download-sry.figoogoo.com>> %GITHUB_ENV%
             ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
         ) ELSE (
-            ECHO BRANCH=%INPUT_GITHUB_REF_NAME%>> %GITHUB_ENV%
+            ECHO BRANCH=%REF_NAME%>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
             ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
@@ -76,4 +87,4 @@ runs:
         )
       env:
         INPUT_GITHUB_REF_NAME: ${{ inputs.github_ref_name }}
-
+        INPUT_ENVIRONMENT: ${{ inputs.environment }}

@@ -6,12 +6,30 @@ on:
     paths-ignore:
       - ".github/workflows/**" # <- 忽略 workflow 目錄下的變更
   workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署環境'
+        required: false
+        type: choice
+        default: ''
+        options:
+          - ''
+          - demo
+          - stage
+          - prod
+      tag:
+        description: 'Tag 名稱'
+        required: false
+        type: string
+        default: ''
 jobs:
   call-common:
-    uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_cc.yaml@master
+    uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_cc.yaml@new_deploy
     with:
       GAME_ID: %GAME_ID%
       COCOS_CREATOR_VERSION: ${{ github.ref_name == '3.8.8' && '3.8.8' || '' }}
+      ENVIRONMENT: ${{ inputs.environment || '' }}
+      TAG: ${{ inputs.tag || '' }}
     secrets:
       TOKEN: ${{ secrets.TOKEN }}
       AWS_ENV: ${{ secrets.AWS_ENV }}

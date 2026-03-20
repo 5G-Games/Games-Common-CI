@@ -39,6 +39,10 @@ inputs:
     description: 'Custom status text to display'
     required: false
     default: ''
+  tag:
+    description: 'Tag name (for release deployments)'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -57,6 +61,7 @@ runs:
         INPUT_RUN_URL: ${{ inputs.run_url }}
         INPUT_COMPARE_URL: ${{ inputs.compare_url }}
         INPUT_STATUS_TEXT: ${{ inputs.status_text }}
+        INPUT_TAG: ${{ inputs.tag }}
       run: |
         $PSDefaultParameterValues['*:Encoding'] = 'utf8'
         [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -80,9 +85,14 @@ runs:
         $versionHash = $env:INPUT_VERSION_HASH
         if (-not $versionHash) { $versionHash = 'N/A' }
 
+        $tagInfo = $env:INPUT_TAG
+
         $message = "Status: $statusText`n"
         $message += "Repository: $env:INPUT_REPOSITORY`n"
         $message += "Branch: $env:INPUT_BRANCH ver:$versionHash`n"
+        if ($tagInfo -and $tagInfo -ne '') {
+            $message += "Tag: $tagInfo`n"
+        }
         $message += "Commit: $commitMessage`n"
         $message += "Trigger: $env:INPUT_ACTOR`n"
         $message += "Users: $env:INPUT_TRIGGERING_ACTOR`n"
