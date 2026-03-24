@@ -17,6 +17,10 @@ on:
         required: false
         type: string
         default: ''
+      ENABLE_ZIP_BUNDLE:
+        required: false
+        type: string
+        default: 'false'
     secrets:
       TOKEN:
         required: true
@@ -156,9 +160,18 @@ jobs:
           cocos_version: ${{ env.COCOS_VERSION }}
 
       - name: build ZIP
+        if: ${{ inputs.ENABLE_ZIP_BUNDLE == 'true' }}
         run: |
           $script = "game\${{ inputs.GAME_ID }}\build-templates\scripts\build-zip.js"
           if (Test-Path $script) {
+            node $script
+          }
+
+      - name: Post-build processing
+        run: |
+          $script = "game\${{ inputs.GAME_ID }}\build-templates\scripts\post-build.js"
+          if (Test-Path $script) {
+            $env:ENABLE_ZIP_BUNDLE = "${{ inputs.ENABLE_ZIP_BUNDLE }}"
             node $script
           }
 
