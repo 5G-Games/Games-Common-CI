@@ -33,9 +33,9 @@ runs:
         for /f %%i in ('git rev-parse HEAD:assets/base 2^>nul') do set BASE_HASH=%%i
         for /f %%i in ('git rev-parse HEAD:build-templates 2^>nul') do set TMPL_HASH=%%i
         cd ..\..
-        if not defined GAME_HASH (set GAME_HASH=N/A) else (set GAME_HASH=%GAME_HASH:~0,4%)
-        if not defined BASE_HASH (set BASE_HASH=N/A) else (set BASE_HASH=%BASE_HASH:~0,4%)
-        if not defined TMPL_HASH (set TMPL_HASH=N/A) else (set TMPL_HASH=%TMPL_HASH:~0,4%)
+        if not defined GAME_HASH (set GAME_HASH=N/A) else (set GAME_HASH=%GAME_HASH:~0,2%)
+        if not defined BASE_HASH (set BASE_HASH=N/A) else (set BASE_HASH=%BASE_HASH:~0,2%)
+        if not defined TMPL_HASH (set TMPL_HASH=N/A) else (set TMPL_HASH=%TMPL_HASH:~0,2%)
         echo VERSION_HASH=%GAME_HASH%-%BASE_HASH%-%TMPL_HASH%>> %GITHUB_ENV%
       env:
         INPUT_GITHUB_DEPLOY: ${{ inputs.github_deploy }}
