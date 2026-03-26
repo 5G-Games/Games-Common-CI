@@ -77,7 +77,7 @@ jobs:
           }
 
       - name: Setup branch env
-        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@new_runner
         with:
           github_ref_name: ${{ github.ref_name }}
           environment: ${{ inputs.ENVIRONMENT }}
@@ -88,20 +88,20 @@ jobs:
           node-version: '22'
 
       - name: Cleanup workspace before build
-        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@new_runner
 
       - name: Configure Git
-        uses: 5G-Games/Games-Common-CI/.github/actions/configure-git@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/configure-git@new_runner
         with:
           github_deploy: ${{ secrets.TOKEN }}
 
       - name: Clone deploy script
-        uses: 5G-Games/Games-Common-CI/.github/actions/clone-deploy-script@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/clone-deploy-script@new_runner
         with:
           github_deploy: ${{ secrets.TOKEN }}
 
       - name: Clone game repositories
-        uses: 5G-Games/Games-Common-CI/.github/actions/clone-game-repositories@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/clone-game-repositories@new_runner
         with:
           github_deploy: ${{ secrets.TOKEN }}
           game_id: ${{ inputs.GAME_ID }}
@@ -110,7 +110,7 @@ jobs:
 
       - name: Slack Notification - Start
         if: ${{ env.SLACK == 'true' }}
-        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_runner
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
           job_status: success
@@ -126,35 +126,35 @@ jobs:
           tag: ${{ inputs.TAG }}
 
       - name: Create deploy path
-        uses: 5G-Games/Games-Common-CI/.github/actions/create-deploy-path@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/create-deploy-path@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
 
       - name: npm install
-        uses: 5G-Games/Games-Common-CI/.github/actions/npm-install@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/npm-install@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
 
       - name: Clone submodules
-        uses: 5G-Games/Games-Common-CI/.github/actions/clone-submodules@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/clone-submodules@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
 
       - name: Update CHEAT config
         if: ${{ env.BRANCH == 'stage' || env.BRANCH == 'prod' || env.BRANCH == 'demo' }}
-        uses: 5G-Games/Games-Common-CI/.github/actions/update-cheat-config@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/update-cheat-config@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
 
       - name: Replace Build Config
-        uses: 5G-Games/Games-Common-CI/.github/actions/replace-build-config@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/replace-build-config@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
 
       - name: Build Cocos Mobile
-        uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
           cocos_version: ${{ env.COCOS_VERSION }}
@@ -176,32 +176,32 @@ jobs:
           }
 
       - name: Copy packages
-        uses: 5G-Games/Games-Common-CI/.github/actions/copy-packages@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/copy-packages@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
 
       - name: Deploy part 1
-        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part1@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part1@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
           deploy_type: ${{ env.DEPLOY_TYPE }}
           deploy_str: ${{ env.DEPLOY_STR }}
 
       - name: Deploy part 2
-        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part2@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part2@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
           github_deploy: ${{ secrets.TOKEN }}
 
       - name: Upload S3
-        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
           s3_url: ${{ env.S3_URL }}
 
       - name: CDN cache prune
-        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
@@ -216,11 +216,11 @@ jobs:
           akamai_api: ${{ secrets.AKAMAI }}
 
       - name: Cleanup workspace after build
-        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@new_runner
 
       - name: Slack Notification - Complete
         if: ${{ env.SLACK == 'true' }}
-        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_runner
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
           job_status: ${{ job.status }}
