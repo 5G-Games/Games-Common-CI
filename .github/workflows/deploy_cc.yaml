@@ -191,7 +191,7 @@ jobs:
         uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part2@new_runner
         with:
           game_id: ${{ inputs.GAME_ID }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.CLONE_BRANCH }}
           github_deploy: ${{ secrets.TOKEN }}
 
       - name: Upload S3
