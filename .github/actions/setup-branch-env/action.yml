@@ -17,8 +17,10 @@ runs:
         REM If environment input is provided, use it; otherwise use github_ref_name
         IF NOT "%INPUT_ENVIRONMENT%"=="" (
             SET "REF_NAME=%INPUT_ENVIRONMENT%"
+            ECHO CLONE_BRANCH=release>> %GITHUB_ENV%
         ) ELSE (
             SET "REF_NAME=%INPUT_GITHUB_REF_NAME%"
+            ECHO CLONE_BRANCH=%INPUT_GITHUB_REF_NAME%>> %GITHUB_ENV%
         )
 
         IF /I "%REF_NAME%" == "dev" (

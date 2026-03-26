@@ -105,7 +105,7 @@ jobs:
         with:
           github_deploy: ${{ secrets.TOKEN }}
           game_id: ${{ inputs.GAME_ID }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.CLONE_BRANCH }}
           tag: ${{ inputs.TAG }}
 
       - name: Slack Notification - Start
