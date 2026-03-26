@@ -105,7 +105,7 @@ jobs:
         with:
           github_deploy: ${{ secrets.TOKEN }}
           game_id: ${{ inputs.GAME_ID }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.CLONE_BRANCH }}
           tag: ${{ inputs.TAG }}
 
       - name: Slack Notification - Start
@@ -191,7 +191,7 @@ jobs:
         uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part2@new_deploy
         with:
           game_id: ${{ inputs.GAME_ID }}
-          branch: ${{ env.BRANCH }}
+          branch: ${{ env.CLONE_BRANCH }}
           github_deploy: ${{ secrets.TOKEN }}
 
       - name: Upload S3

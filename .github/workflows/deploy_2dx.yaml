@@ -87,6 +87,9 @@ jobs:
           REM If environment input is provided, use it; otherwise use github_ref_name
           IF NOT "%DEPLOY_ENVIRONMENT%"=="" (
               SET "GITHUB_REF_NAME=%DEPLOY_ENVIRONMENT%"
+              ECHO CLONE_BRANCH=release>> %GITHUB_ENV%
+          ) ELSE (
+              ECHO CLONE_BRANCH=%GITHUB_REF_NAME%>> %GITHUB_ENV%
           )
 
           IF /I "%GITHUB_REF_NAME%" == "dev" (
@@ -181,7 +184,7 @@ jobs:
       # clone game repositories
       - name: clone game repositories
         run: |
-          git clone --branch %BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID%
+          git clone --branch %CLONE_BRANCH% https://%GITHUB_DEPLOY%@github.com/5G-Games/Games-%GAME_ID% game\%GAME_ID%
           IF NOT "%DEPLOY_TAG%"=="" (
               ECHO Checking out tag: %DEPLOY_TAG%
               cd game\%GAME_ID%
