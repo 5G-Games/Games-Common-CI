@@ -55,7 +55,7 @@ env:
 
 jobs:
   creator:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: [self-hosted, Windows, X64, runner-04]
     steps:
       - name: Clean Cocos Creator cache
         run: |

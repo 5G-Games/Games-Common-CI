@@ -48,7 +48,7 @@ env:
 
 jobs:
   dx:
-    runs-on: [self-hosted, Windows, X64]
+    runs-on: [self-hosted, Windows, X64, runner-04]
     steps:
       - name: Slack Notification
         if: ${{ always() }}
