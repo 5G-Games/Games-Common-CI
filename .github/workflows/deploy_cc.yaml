@@ -124,6 +124,8 @@ jobs:
           compare_url: ${{ github.event.compare || 'N/A' }}
           status_text: 'Start'
           tag: ${{ inputs.TAG }}
+          runner_name: ${{ runner.name }}
+          deploy_env: ${{ env.BRANCH }}
 
       - name: Create deploy path
         uses: 5G-Games/Games-Common-CI/.github/actions/create-deploy-path@new_deploy
@@ -233,3 +235,5 @@ jobs:
           run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           compare_url: ${{ github.event.compare || 'N/A' }}
           tag: ${{ inputs.TAG }}
+          runner_name: ${{ runner.name }}
+          deploy_env: ${{ env.BRANCH }}

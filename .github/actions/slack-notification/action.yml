@@ -43,6 +43,14 @@ inputs:
     description: 'Tag name (for release deployments)'
     required: false
     default: ''
+  runner_name:
+    description: 'Runner name that executed the job'
+    required: false
+    default: 'N/A'
+  deploy_env:
+    description: 'Deploy target environment'
+    required: false
+    default: 'N/A'
 
 runs:
   using: 'composite'
@@ -62,6 +70,8 @@ runs:
         INPUT_COMPARE_URL: ${{ inputs.compare_url }}
         INPUT_STATUS_TEXT: ${{ inputs.status_text }}
         INPUT_TAG: ${{ inputs.tag }}
+        INPUT_RUNNER_NAME: ${{ inputs.runner_name }}
+        INPUT_DEPLOY_ENV: ${{ inputs.deploy_env }}
       run: |
         $PSDefaultParameterValues['*:Encoding'] = 'utf8'
         [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -88,6 +98,8 @@ runs:
         $tagInfo = $env:INPUT_TAG
 
         $message = "Status: $statusText`n"
+        $message += "Runner: $env:INPUT_RUNNER_NAME`n"
+        $message += "Deploy: $env:INPUT_DEPLOY_ENV`n"
         $message += "Repository: $env:INPUT_REPOSITORY`n"
         $message += "Branch: $env:INPUT_BRANCH ver:$versionHash`n"
         if ($tagInfo -and $tagInfo -ne '') {
