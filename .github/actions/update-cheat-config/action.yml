@@ -19,8 +19,8 @@ runs:
             EXIT /B 0
         )
 
-        REM 使用 PowerShell 讀取 JSON 並修改 CHEAT 值
-        powershell -NoProfile -Command "$json = Get-Content 'settings\v2\packages\engine.json' -Raw | ConvertFrom-Json; $cheatItem = $json.macroCustom | Where-Object { $_.key -eq 'CHEAT' }; if ($cheatItem) { $cheatItem.value = $false; $json | ConvertTo-Json -Depth 10 | Set-Content 'settings\v2\packages\engine.json' -Encoding UTF8; Write-Host '已成功將 CHEAT 設定為 false' } else { Write-Host '未找到 CHEAT 設定項' }"
+        REM 使用 PowerShell 讀取 JSON 並修改 CHEAT 值（含解析失敗時的 fallback）
+        powershell -NoProfile -Command "$path = 'settings\v2\packages\engine.json'; $content = [System.IO.File]::ReadAllText($path); $updated = $false; try { $json = $content | ConvertFrom-Json; $cheatItem = $json.macroCustom | Where-Object { $_.key -eq 'CHEAT' } | Select-Object -First 1; if ($cheatItem) { $cheatItem.value = $false; $json | ConvertTo-Json -Depth 100 | Set-Content $path -Encoding UTF8; Write-Host '已成功將 CHEAT 設定為 false（JSON 模式）'; $updated = $true } } catch { Write-Host 'JSON 解析失敗，改用文字模式更新 CHEAT'; $pattern = '(?s)(\"key\"\s*:\s*\"CHEAT\"\s*,\s*\"value\"\s*:\s*)(true|false)'; if ($content -match $pattern) { $newContent = [System.Text.RegularExpressions.Regex]::Replace($content, $pattern, '$1false', 1); [System.IO.File]::WriteAllText($path, $newContent, [System.Text.UTF8Encoding]::new($false)); Write-Host '已成功將 CHEAT 設定為 false（文字模式）'; $updated = $true } }; if (-not $updated) { Write-Host '未找到 CHEAT 設定項'; exit 1 }"
 
         IF %ERRORLEVEL% NEQ 0 (
           ECHO 處理 engine.json 時發生錯誤
