@@ -156,7 +156,7 @@ jobs:
           branch: ${{ env.BRANCH }}
 
       - name: Build Cocos Mobile
-        uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@test/remote
         with:
           game_id: ${{ inputs.GAME_ID }}
           cocos_version: ${{ env.COCOS_VERSION }}
