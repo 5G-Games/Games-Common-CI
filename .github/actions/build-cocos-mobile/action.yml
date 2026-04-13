@@ -15,7 +15,7 @@ runs:
       run: |
         echo cd game\%INPUT_GAME_ID% >> build.bat
         echo git restore --source=HEAD --staged --worktree assets >> build.bat
-        echo CALL %INPUT_COCOS_VERSION% --no-cache --clear-cache --project . --build "platform=web-mobile;debug=false;md5Cache=true" >> build.bat
+        echo CALL %INPUT_COCOS_VERSION% --no-cache --clear-cache --project . --build "platform=web-mobile;debug=false;md5Cache=true;server=http://127.0.0.1" >> build.bat
         echo IF EXIST build\web-mobile\5g_2.*.gif IF NOT EXIST build\web-mobile\5g_2.gif MOVE /Y build\web-mobile\5g_2.*.gif build\web-mobile\5g_2.gif >> build.bat
 
         CALL build.bat
