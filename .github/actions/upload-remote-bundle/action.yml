@@ -1,0 +1,47 @@
+name: 'Upload Remote Bundle'
+description: 'Extract remote bundle from build output, strip hash from entry files, and upload to S3. Only for template project.'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+  s3_url:
+    description: 'S3 URL (base bucket)'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Prepare remote bundle (strip hash from entry files)
+      shell: powershell
+      run: |
+        $src = "game\${{ inputs.game_id }}\build\web-mobile\remote"
+        $dst = "remote-bundle"
+
+        if (-not (Test-Path $src)) {
+          Write-Host "Remote folder not found: $src — skip."
+          exit 0
+        }
+
+        if (Test-Path $dst) {
+          Remove-Item -Recurse -Force $dst
+        }
+        Copy-Item -Recurse -Force $src $dst
+
+        # Strip hash from entry files (index.<hash>.js / config.<hash>.json)
+        Get-ChildItem -Path $dst -Recurse -File | ForEach-Object {
+          if ($_.Name -match '^(index|config)\.[0-9a-f]+\.(js|json)$') {
+            $newName = $_.Name -replace '^(index|config)\.[0-9a-f]+\.(js|json)$', '$1.$2'
+            Rename-Item -Path $_.FullName -NewName $newName
+            Write-Host "Renamed: $($_.Name) -> $newName"
+          }
+        }
+
+    - name: Upload remote bundle to S3
+      shell: cmd
+      run: |
+        IF NOT EXIST remote-bundle (
+            ECHO remote-bundle not prepared, skip upload.
+            EXIT /B 0
+        )
+        upload_remote_to_s3.exe %INPUT_S3_URL% remote-bundle AWS_ENV ap-east-1
+      env:
+        INPUT_S3_URL: ${{ inputs.s3_url }}
