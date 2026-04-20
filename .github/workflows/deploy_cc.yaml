@@ -203,7 +203,7 @@ jobs:
           s3_url: ${{ env.S3_URL }}
 
       - name: Upload Remote Bundle (Templete only)
-        if: ${{ inputs.GAME_ID == 'remote-bundle' }}
+        if: ${{ inputs.GAME_ID == 'Templete' }}
         uses: 5G-Games/Games-Common-CI/.github/actions/upload-remote-bundle@new_deploy
         with:
           game_id: ${{ inputs.GAME_ID }}
