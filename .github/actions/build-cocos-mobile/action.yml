@@ -22,6 +22,11 @@ runs:
 
         if %ERRORLEVEL%==36 exit 0
         if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
+
+        REM Remove 'remote' from projectBundles and bundleVers in settings.json
+        cd game\%INPUT_GAME_ID%
+        node -e "const fs=require('fs'),g=require('path'),d=g.join('build','web-mobile','src');if(!fs.existsSync(d))process.exit(0);const f=fs.readdirSync(d).find(n=>n.startsWith('settings.')&&n.endsWith('.json'));if(!f)process.exit(0);const p=g.join(d,f),s=JSON.parse(fs.readFileSync(p,'utf8'));if(s.assets){s.assets.projectBundles=(s.assets.projectBundles||[]).filter(b=>b!=='remote');delete(s.assets.bundleVers||{})['remote'];fs.writeFileSync(p,JSON.stringify(s));console.log('Removed remote from settings.json')}"
+        cd ..\..
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_COCOS_VERSION: ${{ inputs.cocos_version }}
