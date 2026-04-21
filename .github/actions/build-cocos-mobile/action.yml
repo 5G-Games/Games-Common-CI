@@ -24,9 +24,7 @@ runs:
         if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
         REM Remove 'remote' from projectBundles and bundleVers in settings.json
-        cd game\%INPUT_GAME_ID%
-        node -e "const fs=require('fs'),g=require('path'),b='build';if(!fs.existsSync(b))process.exit(0);const dirs=fs.readdirSync(b).filter(d=>d.startsWith('web-mobile')).sort().reverse();if(!dirs.length)process.exit(0);const d=g.join(b,dirs[0],'src');if(!fs.existsSync(d))process.exit(0);const f=fs.readdirSync(d).find(n=>n.startsWith('settings.')&&n.endsWith('.json'));if(!f)process.exit(0);const p=g.join(d,f),s=JSON.parse(fs.readFileSync(p,'utf8'));if(s.assets){s.assets.projectBundles=(s.assets.projectBundles||[]).filter(b=>b!=='remote');delete(s.assets.bundleVers||{})['remote'];fs.writeFileSync(p,JSON.stringify(s));console.log('Removed remote from settings.json: '+p)}"
-        cd ..\..
+        node -e "const fs=require('fs'),g=require('path'),b=g.join('game','%INPUT_GAME_ID%','build');if(!fs.existsSync(b)){console.log('build dir not found: '+b);process.exit(0)}const dirs=fs.readdirSync(b).filter(d=>d.startsWith('web-mobile')).sort().reverse();if(!dirs.length){console.log('no web-mobile dir');process.exit(0)}const d=g.join(b,dirs[0],'src');if(!fs.existsSync(d)){console.log('src dir not found: '+d);process.exit(0)}const f=fs.readdirSync(d).find(n=>n.startsWith('settings.')&&n.endsWith('.json'));if(!f){console.log('settings.json not found');process.exit(0)}const p=g.join(d,f),s=JSON.parse(fs.readFileSync(p,'utf8'));if(s.assets){s.assets.projectBundles=(s.assets.projectBundles||[]).filter(x=>x!=='remote');delete(s.assets.bundleVers||{})['remote'];fs.writeFileSync(p,JSON.stringify(s));console.log('Removed remote from settings.json: '+p)}"
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_COCOS_VERSION: ${{ inputs.cocos_version }}
