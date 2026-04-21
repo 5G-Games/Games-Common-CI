@@ -25,7 +25,7 @@ runs:
 
         REM Remove 'remote' from projectBundles and bundleVers in settings.json
         cd game\%INPUT_GAME_ID%
-        node -e "const fs=require('fs'),g=require('path'),d=g.join('build','web-mobile','src');if(!fs.existsSync(d))process.exit(0);const f=fs.readdirSync(d).find(n=>n.startsWith('settings.')&&n.endsWith('.json'));if(!f)process.exit(0);const p=g.join(d,f),s=JSON.parse(fs.readFileSync(p,'utf8'));if(s.assets){s.assets.projectBundles=(s.assets.projectBundles||[]).filter(b=>b!=='remote');delete(s.assets.bundleVers||{})['remote'];fs.writeFileSync(p,JSON.stringify(s));console.log('Removed remote from settings.json')}"
+        node -e "const fs=require('fs'),g=require('path'),b='build';if(!fs.existsSync(b))process.exit(0);const dirs=fs.readdirSync(b).filter(d=>d.startsWith('web-mobile')).sort().reverse();if(!dirs.length)process.exit(0);const d=g.join(b,dirs[0],'src');if(!fs.existsSync(d))process.exit(0);const f=fs.readdirSync(d).find(n=>n.startsWith('settings.')&&n.endsWith('.json'));if(!f)process.exit(0);const p=g.join(d,f),s=JSON.parse(fs.readFileSync(p,'utf8'));if(s.assets){s.assets.projectBundles=(s.assets.projectBundles||[]).filter(b=>b!=='remote');delete(s.assets.bundleVers||{})['remote'];fs.writeFileSync(p,JSON.stringify(s));console.log('Removed remote from settings.json: '+p)}"
         cd ..\..
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
