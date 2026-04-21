@@ -23,8 +23,33 @@ runs:
         if %ERRORLEVEL%==36 exit 0
         if %ERRORLEVEL% NEQ 0 exit /b %ERRORLEVEL%
 
-        REM Remove 'remote' from projectBundles and bundleVers in settings.json
-        node -e "const fs=require('fs'),g=require('path'),b=g.join('game','%INPUT_GAME_ID%','build');if(!fs.existsSync(b)){console.log('build dir not found: '+b);process.exit(0)}const dirs=fs.readdirSync(b).filter(d=>d.startsWith('web-mobile')).sort().reverse();if(!dirs.length){console.log('no web-mobile dir');process.exit(0)}const d=g.join(b,dirs[0],'src');if(!fs.existsSync(d)){console.log('src dir not found: '+d);process.exit(0)}const f=fs.readdirSync(d).find(n=>n.startsWith('settings.')&&n.endsWith('.json'));if(!f){console.log('settings.json not found');process.exit(0)}const p=g.join(d,f),s=JSON.parse(fs.readFileSync(p,'utf8'));if(s.assets){s.assets.projectBundles=(s.assets.projectBundles||[]).filter(x=>x!=='remote');delete(s.assets.bundleVers||{})['remote'];fs.writeFileSync(p,JSON.stringify(s));console.log('Removed remote from settings.json: '+p)}"
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_COCOS_VERSION: ${{ inputs.cocos_version }}
+    - name: Remove remote bundle from settings.json
+      shell: powershell
+      run: |
+        $buildRoot = "game\${{ inputs.game_id }}\build"
+        Write-Host "Looking for build dir: $buildRoot"
+        if (-not (Test-Path $buildRoot)) { Write-Host "Build dir not found, skip."; exit 0 }
+
+        $webDir = Get-ChildItem -Path $buildRoot -Directory | Where-Object { $_.Name -match '^web-mobile' } | Sort-Object Name -Descending | Select-Object -First 1
+        if (-not $webDir) { Write-Host "No web-mobile dir found, skip."; exit 0 }
+
+        $srcDir = Join-Path $webDir.FullName "src"
+        if (-not (Test-Path $srcDir)) { Write-Host "src dir not found, skip."; exit 0 }
+
+        $settingsFile = Get-ChildItem -Path $srcDir -File | Where-Object { $_.Name -match '^settings\..*\.json$' } | Select-Object -First 1
+        if (-not $settingsFile) { Write-Host "settings.json not found, skip."; exit 0 }
+
+        Write-Host "Found: $($settingsFile.FullName)"
+        $json = Get-Content $settingsFile.FullName -Raw | ConvertFrom-Json
+
+        if ($json.assets) {
+          $json.assets.projectBundles = @($json.assets.projectBundles | Where-Object { $_ -ne 'remote' })
+          $json.assets.bundleVers.PSObject.Properties.Remove('remote')
+          $json | ConvertTo-Json -Depth 20 -Compress | Set-Content $settingsFile.FullName
+          Write-Host "Removed remote from settings.json"
+        } else {
+          Write-Host "No assets field in settings.json, skip."
+        }
