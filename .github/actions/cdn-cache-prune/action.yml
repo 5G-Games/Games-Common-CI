@@ -43,6 +43,10 @@ inputs:
     description: 'Akamai API (secret)'
     required: false
     default: ''
+  cloud_front_cn_api:
+    description: 'CloudFront CN API (secret)'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
@@ -72,6 +76,8 @@ runs:
               ECHO Processing 
               cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2L0JORX06PQAQ CLOUD_FRONT_API
               cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2DVZJS6SZ2ONK CLOUD_FRONT_API
+              cloudfront_PurgeCache.exe %INPUT_GAME_ID% EW360E9PAF7JW CLOUD_FRONT_CN_API
+              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E314PE6KDDAWVC CLOUD_FRONT_CN_API
           )          
         )
       env:
@@ -86,3 +92,4 @@ runs:
         CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
         CDNETWORKS_API: ${{ inputs.cdnetworks_api }}
         AKAMAI_API: ${{ inputs.akamai_api }}
+        CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}

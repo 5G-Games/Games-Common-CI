@@ -37,4 +37,5 @@ jobs:
       CLOUD_FLARE: ${{ secrets.CLOUD_FLARE }}
       CDNETWORKS: ${{ secrets.CDNETWORKS }}
       AKAMAI: ${{ secrets.AKAMAI }}
+      SADP_AWSCLI_CLOUDFRONT: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
       WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}

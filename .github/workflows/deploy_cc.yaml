@@ -34,6 +34,8 @@ on:
         required: true
       AKAMAI:
         required: true
+      SADP_AWSCLI_CLOUDFRONT:
+        required: false
       WEBHOOK_URL:
         required: true
 env:
@@ -52,6 +54,7 @@ env:
   CLOUD_FLARE_API: ${{ secrets.CLOUD_FLARE }}
   CDNETWORKS_API: ${{ secrets.CDNETWORKS }}
   AKAMAI_API: ${{ secrets.AKAMAI }}
+  CLOUD_FRONT_CN_API: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
 
 jobs:
   creator:
@@ -223,6 +226,7 @@ jobs:
           cloud_front_api: ${{ secrets.CLOUD_FRONT }}
           cdnetworks_api: ${{ secrets.CDNETWORKS }}
           akamai_api: ${{ secrets.AKAMAI }}
+          cloud_front_cn_api: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
 
       - name: Cleanup workspace after build
         uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@new_deploy
