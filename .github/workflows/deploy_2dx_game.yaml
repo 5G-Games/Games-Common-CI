@@ -34,6 +34,6 @@ jobs:
       AWS_ENV: ${{ secrets.AWS_ENV }}
       CLOUD_FRONT: ${{ secrets.CLOUD_FRONT }}
       CLOUD_FLARE: ${{ secrets.CLOUD_FLARE }}
-      CDNETWORKS: ${{ secrets.CDNETWORKS }}
       AKAMAI: ${{ secrets.AKAMAI }}
+      SADP_AWSCLI_CLOUDFRONT: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
       WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
