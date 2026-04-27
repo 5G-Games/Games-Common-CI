@@ -15,6 +15,10 @@ inputs:
     description: 'CDN CFE URL'
     required: false
     default: ''
+  cdn_byteplus_urls:
+    description: 'BytePlus CDN base URLs (comma separated)'
+    required: false
+    default: ''
   cloud_front_id:
     description: 'CloudFront ID'
     required: false
@@ -33,6 +37,10 @@ inputs:
     default: ''
   cloud_front_cn_api:
     description: 'CloudFront CN API (secret)'
+    required: false
+    default: ''
+  byteplus_cdn_api:
+    description: 'BytePlus CDN API credentials (secret)'
     required: false
     default: ''
 runs:
@@ -63,6 +71,11 @@ runs:
               cloudfront_PurgeCache.exe %INPUT_GAME_ID% EW360E9PAF7JW CLOUD_FRONT_CN_API
               cloudfront_PurgeCache.exe %INPUT_GAME_ID% E314PE6KDDAWVC CLOUD_FRONT_CN_API
           )
+
+          IF NOT "%CDN_BASE_URLS%"=="" (
+              ECHO Processing BytePlus CDN
+              byteplus_cdn_purge.exe %INPUT_GAME_ID% BYTEPLUS_CDN_API
+          )
         )
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
@@ -74,3 +87,5 @@ runs:
         CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
         AKAMAI_API: ${{ inputs.akamai_api }}
         CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
+        CDN_BASE_URLS: ${{ inputs.cdn_byteplus_urls }}
+        BYTEPLUS_CDN_API: ${{ inputs.byteplus_cdn_api }}

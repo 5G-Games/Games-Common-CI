@@ -34,6 +34,8 @@ on:
         required: true
       SADP_AWSCLI_CLOUDFRONT:
         required: false
+      BYTEPLUS_CDN_API_CREDENTIALS:
+        required: false
       WEBHOOK_URL:
         required: true
 env:
@@ -221,6 +223,8 @@ jobs:
           cloud_front_api: ${{ secrets.CLOUD_FRONT }}
           akamai_api: ${{ secrets.AKAMAI }}
           cloud_front_cn_api: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
+          cdn_byteplus_urls: ${{ env.CDN_BYTEPLUS_URLS }}
+          byteplus_cdn_api: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
 
       - name: Cleanup workspace after build
         uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@testCF

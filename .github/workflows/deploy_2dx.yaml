@@ -27,6 +27,8 @@ on:
         required: true
       SADP_AWSCLI_CLOUDFRONT:
         required: false
+      BYTEPLUS_CDN_API_CREDENTIALS:
+        required: false
       WEBHOOK_URL:
         required: true
 
@@ -45,6 +47,7 @@ env:
   CLOUD_FLARE_API: ${{ secrets.CLOUD_FLARE }}
   AKAMAI_API: ${{ secrets.AKAMAI }}
   CLOUD_FRONT_CN_API: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
+  BYTEPLUS_CDN_API: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
 
 jobs:
   dx:
@@ -134,6 +137,7 @@ jobs:
               ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
               ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
+              ECHO CDN_BYTEPLUS_URLS=https://download.figoldgod.vip,https://download.figungun.win,https://download.yapyifkt.vip,https://download.xmlkdzbz.vip,https://download.figoogoo.com>> %GITHUB_ENV%
           ) ELSE (
               ECHO BRANCH=%GITHUB_REF_NAME%>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
@@ -262,6 +266,11 @@ jobs:
                 cloudfront_PurgeCache.exe %GAME_ID% E2DVZJS6SZ2ONK CLOUD_FRONT_API
                 cloudfront_PurgeCache.exe %GAME_ID% EW360E9PAF7JW CLOUD_FRONT_CN_API
                 cloudfront_PurgeCache.exe %GAME_ID% E314PE6KDDAWVC CLOUD_FRONT_CN_API
+            )
+
+            IF NOT "%CDN_BYTEPLUS_URLS%"=="" (
+                ECHO Processing BytePlus CDN
+                byteplus_cdn_purge.exe %GAME_ID% BYTEPLUS_CDN_API
             )
           )
         shell: cmd

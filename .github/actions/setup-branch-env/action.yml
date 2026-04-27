@@ -65,6 +65,7 @@ runs:
             ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
             ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
+            ECHO CDN_BYTEPLUS_URLS=https://download.figoldgod.vip,https://download.figungun.win,https://download.yapyifkt.vip,https://download.xmlkdzbz.vip,https://download.figoogoo.com>> %GITHUB_ENV%
         ) ELSE (
             ECHO BRANCH=%REF_NAME%>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
