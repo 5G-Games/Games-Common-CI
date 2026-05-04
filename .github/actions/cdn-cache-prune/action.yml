@@ -20,7 +20,11 @@ inputs:
     required: false
     default: ''
   cloud_front_id:
-    description: 'CloudFront ID'
+    description: 'CloudFront ID (primary)'
+    required: false
+    default: ''
+  cloud_front_extra_ids:
+    description: 'CloudFront extra IDs (comma separated)'
     required: false
     default: ''
   cloud_flare_api:
@@ -58,24 +62,19 @@ runs:
             dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID%
         )
         IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
-            ECHO Processing %INPUT_CLOUD_FRONT_ID%
+            ECHO Processing CloudFront: %INPUT_CLOUD_FRONT_ID%
             cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_API
         )
-
-        IF "%INPUT_BRANCH%" == "prod" (
-          ECHO Other Region. Processing...
-          IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
-              ECHO Processing
-              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2L0JORX06PQAQ CLOUD_FRONT_API
-              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2DVZJS6SZ2ONK CLOUD_FRONT_API
-              cloudfront_PurgeCache.exe %INPUT_GAME_ID% EW360E9PAF7JW CLOUD_FRONT_CN_API
-              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E314PE6KDDAWVC CLOUD_FRONT_CN_API
-          )
-
-          IF NOT "%CDN_BASE_URLS%"=="" (
-              ECHO Processing BytePlus CDN
-              byteplus_cdn_purge.exe %INPUT_GAME_ID% BYTEPLUS_CDN_API
-          )
+        IF NOT "%INPUT_CLOUD_FRONT_EXTRA_IDS%"=="" (
+            ECHO Processing CloudFront extra distributions...
+            FOR %%i IN (%INPUT_CLOUD_FRONT_EXTRA_IDS%) DO (
+                ECHO Processing CloudFront: %%i
+                cloudfront_PurgeCache.exe %INPUT_GAME_ID% %%i CLOUD_FRONT_CN_API
+            )
+        )
+        IF NOT "%CDN_BASE_URLS%"=="" (
+            ECHO Processing BytePlus CDN
+            byteplus_cdn_purge.exe %INPUT_GAME_ID% BYTEPLUS_CDN_API
         )
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
@@ -83,6 +82,7 @@ runs:
         INPUT_CDN_AKA_URL: ${{ inputs.cdn_aka_url }}
         INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
         INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
+        INPUT_CLOUD_FRONT_EXTRA_IDS: ${{ inputs.cloud_front_extra_ids }}
         INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
         CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
         AKAMAI_API: ${{ inputs.akamai_api }}

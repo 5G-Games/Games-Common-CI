@@ -219,6 +219,7 @@ jobs:
           cdn_aka_url: ${{ env.CDN_AKA_URL }}
           cdn_cfe_url: ${{ env.CDN_CFE_URL }}
           cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
+          cloud_front_extra_ids: ${{ env.CLOUD_FRONT_EXTRA_IDS }}
           cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
           cloud_front_api: ${{ secrets.CLOUD_FRONT }}
           akamai_api: ${{ secrets.AKAMAI }}
