@@ -7,10 +7,6 @@ inputs:
   branch:
     description: 'Branch name'
     required: true
-  cdn_cns_url:
-    description: 'CDN CNS URL'
-    required: false
-    default: ''
   cdn_aka_url:
     description: 'CDN AKA URL'
     required: false
@@ -19,16 +15,36 @@ inputs:
     description: 'CDN CFE URL'
     required: false
     default: ''
+  cdn_byteplus_urls:
+    description: 'BytePlus CDN base URLs (comma separated)'
+    required: false
+    default: ''
   cloud_front_id:
-    description: 'CloudFront ID'
+    description: 'CloudFront ID (primary)'
+    required: false
+    default: ''
+  cloud_front_extra_ids:
+    description: 'CloudFront extra IDs (comma separated)'
     required: false
     default: ''
   cloud_flare_api:
-    description: 'CloudFlare API'
+    description: 'CloudFlare API token'
     required: false
     default: ''
-  domain_zone_id:
-    description: 'Domain Zone ID'
+  cloud_front_api:
+    description: 'CloudFront API (secret)'
+    required: false
+    default: ''
+  akamai_api:
+    description: 'Akamai API (secret)'
+    required: false
+    default: ''
+  cloud_front_cn_api:
+    description: 'CloudFront CN API (secret)'
+    required: false
+    default: ''
+  byteplus_cdn_api:
+    description: 'BytePlus CDN API credentials (secret)'
     required: false
     default: ''
 runs:
@@ -37,38 +53,39 @@ runs:
     - name: CDN cache prune
       shell: cmd
       run: |
-        IF NOT "%INPUT_CDN_CNS_URL%"=="" (
-            ECHO Processing 
-            siraya_PurgeCache.exe %INPUT_CDN_CNS_URL% %INPUT_GAME_ID% CDNETWORKS_API
-        )
         IF NOT "%INPUT_CDN_AKA_URL%"=="" (
-            ECHO Processing 
+            ECHO Processing %INPUT_CDN_AKA_URL%
             akamai_PurgeCache.exe %INPUT_CDN_AKA_URL% %INPUT_GAME_ID% AKAMAI_API
         )
         IF NOT "%INPUT_CDN_CFE_URL%"=="" (
-            ECHO Processing 
-            dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_DOMAIN_ZONE_ID% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID%
+            ECHO Processing Cloudflare: %INPUT_CDN_CFE_URL%
+            dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID%
         )
         IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
-            ECHO Processing 
+            ECHO Processing CloudFront: %INPUT_CLOUD_FRONT_ID%
             cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_API
         )
-
-        IF "%INPUT_BRANCH%" == "prod" (
-          ECHO Other Region. Processing...
-          IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
-              ECHO Processing 
-              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2L0JORX06PQAQ CLOUD_FRONT_API
-              cloudfront_PurgeCache.exe %INPUT_GAME_ID% E2DVZJS6SZ2ONK CLOUD_FRONT_API
-          )          
+        IF NOT "%INPUT_CLOUD_FRONT_EXTRA_IDS%"=="" (
+            ECHO Processing CloudFront extra distributions...
+            FOR %%i IN (%INPUT_CLOUD_FRONT_EXTRA_IDS%) DO (
+                ECHO Processing CloudFront: %%i
+                cloudfront_PurgeCache.exe %INPUT_GAME_ID% %%i CLOUD_FRONT_CN_API
+            )
+        )
+        IF NOT "%CDN_BASE_URLS%"=="" (
+            ECHO Processing BytePlus CDN
+            byteplus_cdn_purge.exe %INPUT_GAME_ID% BYTEPLUS_CDN_API
         )
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_BRANCH: ${{ inputs.branch }}
-        INPUT_CDN_CNS_URL: ${{ inputs.cdn_cns_url }}
         INPUT_CDN_AKA_URL: ${{ inputs.cdn_aka_url }}
         INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
         INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
+        INPUT_CLOUD_FRONT_EXTRA_IDS: ${{ inputs.cloud_front_extra_ids }}
         INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
-        INPUT_DOMAIN_ZONE_ID: ${{ inputs.domain_zone_id }}
-
+        CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
+        AKAMAI_API: ${{ inputs.akamai_api }}
+        CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
+        CDN_BASE_URLS: ${{ inputs.cdn_byteplus_urls }}
+        BYTEPLUS_CDN_API: ${{ inputs.byteplus_cdn_api }}
