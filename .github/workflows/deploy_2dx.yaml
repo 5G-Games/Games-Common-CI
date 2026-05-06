@@ -23,8 +23,6 @@ on:
         required: true
       CLOUD_FLARE:
         required: true
-      AKAMAI:
-        required: true
       SADP_AWSCLI_CLOUDFRONT:
         required: false
       BYTEPLUS_CDN_API_CREDENTIALS:
@@ -45,7 +43,6 @@ env:
   # purge CDN cache
   CLOUD_FRONT_API: ${{ secrets.CLOUD_FRONT }}
   CLOUD_FLARE_API: ${{ secrets.CLOUD_FLARE }}
-  AKAMAI_API: ${{ secrets.AKAMAI }}
   CLOUD_FRONT_CN_API: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
   BYTEPLUS_CDN_API: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
 
@@ -101,14 +98,12 @@ jobs:
               ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
               ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "main" (
               ECHO BRANCH=main>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
               ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
               ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "demo" (
               ECHO BRANCH=demo>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
@@ -116,21 +111,18 @@ jobs:
               ECHO CLOUD_FRONT_ID=E21L9L76V6OI5M>> %GITHUB_ENV%
               ECHO CLOUD_FRONT_EXTRA_IDS=E3A1LWE3XRBBWV,E3TPM36LX847OX>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "uat" (
               ECHO BRANCH=uat>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
               ECHO S3_URL=s3://download-hk-uat>> %GITHUB_ENV%
               ECHO CLOUD_FRONT_ID=E1WC6JK0YZPPS7>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "stage" (
               ECHO BRANCH=stage>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
               ECHO S3_URL=s3://download-hk.kyslot.com>> %GITHUB_ENV%
               ECHO CLOUD_FRONT_ID=E3GCTUVGLK388H>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.dev>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "prod" (
               ECHO BRANCH=prod>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
@@ -138,7 +130,6 @@ jobs:
               ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
               ECHO CLOUD_FRONT_EXTRA_IDS=E2L0JORX06PQAQ,E2DVZJS6SZ2ONK,EW360E9PAF7JW,E314PE6KDDAWVC,E2WU7ENNR9YDME,E198WMSM3JKBHI,E3Q0J4X36TOZU7>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.yapyifkt.vip>> %GITHUB_ENV%
               ECHO CDN_BYTEPLUS_URLS=https://download.figoldgod.vip,https://download.figungun.win,https://download.yapyifkt.vip,https://download.xmlkdzbz.vip,https://download.figoogoo.com>> %GITHUB_ENV%
           ) ELSE (
               ECHO BRANCH=%GITHUB_REF_NAME%>> %GITHUB_ENV%
@@ -146,7 +137,6 @@ jobs:
               ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
               ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
-              ECHO CDN_AKA_URL=download-ak.5gg.win>> %GITHUB_ENV%
           )
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
@@ -247,10 +237,6 @@ jobs:
       # cdn cache prune.
       - name: cdn cache prune.
         run: |
-          IF NOT "%CDN_AKA_URL%"=="" (
-              ECHO Processing %CDN_AKA_URL%
-              akamai_PurgeCache.exe %CDN_AKA_URL% %GAME_ID% AKAMAI_API
-          )
           IF NOT "%CDN_CFE_URL%"=="" (
               ECHO Processing Cloudflare: %CDN_CFE_URL%
               dns_PurgeCache.exe %CLOUD_FLARE_API% %CDN_CFE_URL% %GAME_ID%
