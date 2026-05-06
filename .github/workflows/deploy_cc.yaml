@@ -15,8 +15,6 @@ on:
         required: true
       CLOUD_FLARE:
         required: true
-      AKAMAI:
-        required: true
       SADP_AWSCLI_CLOUDFRONT:
         required: false
       BYTEPLUS_CDN_API_CREDENTIALS:
@@ -37,7 +35,6 @@ env:
   # purge CDN cache
   CLOUD_FRONT_API: ${{ secrets.CLOUD_FRONT }}
   CLOUD_FLARE_API: ${{ secrets.CLOUD_FLARE }}
-  AKAMAI_API: ${{ secrets.AKAMAI }}
   CLOUD_FRONT_CN_API: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
   BYTEPLUS_CDN_API: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
 
@@ -161,14 +158,12 @@ jobs:
         with:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
-          cdn_aka_url: ${{ env.CDN_AKA_URL }}
           cdn_cfe_url: ${{ env.CDN_CFE_URL }}
           cdn_byteplus_urls: ${{ env.CDN_BYTEPLUS_URLS }}
           cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
           cloud_front_extra_ids: ${{ env.CLOUD_FRONT_EXTRA_IDS }}
           cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
           cloud_front_api: ${{ secrets.CLOUD_FRONT }}
-          akamai_api: ${{ secrets.AKAMAI }}
           cloud_front_cn_api: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
           byteplus_cdn_api: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
 

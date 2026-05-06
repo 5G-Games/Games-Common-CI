@@ -7,10 +7,6 @@ inputs:
   branch:
     description: 'Branch name'
     required: true
-  cdn_aka_url:
-    description: 'CDN AKA URL'
-    required: false
-    default: ''
   cdn_cfe_url:
     description: 'CDN CFE URL'
     required: false
@@ -35,10 +31,6 @@ inputs:
     description: 'CloudFront API (secret)'
     required: false
     default: ''
-  akamai_api:
-    description: 'Akamai API (secret)'
-    required: false
-    default: ''
   cloud_front_cn_api:
     description: 'CloudFront CN API (secret)'
     required: false
@@ -53,10 +45,6 @@ runs:
     - name: CDN cache prune
       shell: cmd
       run: |
-        IF NOT "%INPUT_CDN_AKA_URL%"=="" (
-            ECHO Processing %INPUT_CDN_AKA_URL%
-            akamai_PurgeCache.exe %INPUT_CDN_AKA_URL% %INPUT_GAME_ID% AKAMAI_API
-        )
         IF NOT "%INPUT_CDN_CFE_URL%"=="" (
             ECHO Processing Cloudflare: %INPUT_CDN_CFE_URL%
             dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID%
@@ -79,13 +67,11 @@ runs:
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_BRANCH: ${{ inputs.branch }}
-        INPUT_CDN_AKA_URL: ${{ inputs.cdn_aka_url }}
         INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
         INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
         INPUT_CLOUD_FRONT_EXTRA_IDS: ${{ inputs.cloud_front_extra_ids }}
         INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
         CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
-        AKAMAI_API: ${{ inputs.akamai_api }}
         CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
         CDN_BASE_URLS: ${{ inputs.cdn_byteplus_urls }}
         BYTEPLUS_CDN_API: ${{ inputs.byteplus_cdn_api }}

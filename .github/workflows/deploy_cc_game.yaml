@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 jobs:
   call-common:
-    uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_cc.yaml@master
+    uses: 5G-Games/Games-Common-CI/.github/workflows/deploy_cc.yaml@old_1
     with:
       GAME_ID: %GAME_ID%
     secrets:
@@ -16,6 +16,6 @@ jobs:
       AWS_ENV: ${{ secrets.AWS_ENV }}
       CLOUD_FRONT: ${{ secrets.CLOUD_FRONT }}
       CLOUD_FLARE: ${{ secrets.CLOUD_FLARE }}
-      CDNETWORKS: ${{ secrets.CDNETWORKS }}
-      AKAMAI: ${{ secrets.AKAMAI }}
+      SADP_AWSCLI_CLOUDFRONT: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
+      BYTEPLUS_CDN_API_CREDENTIALS: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
       WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
