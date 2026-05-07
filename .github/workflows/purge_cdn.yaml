@@ -1,0 +1,49 @@
+name: Purge CDN Cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      game_id:
+        description: 'Game ID (e.g. S5G-H5-99927)'
+        required: true
+        type: string
+      environment:
+        description: '環境'
+        required: true
+        type: choice
+        options:
+          - dev
+          - demo
+          - uat
+          - stage
+          - prod
+
+jobs:
+  purge:
+    runs-on: [self-hosted, Windows, X64]
+    steps:
+      - name: Setup branch env
+        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@old_1
+        with:
+          github_ref_name: ${{ inputs.environment }}
+
+      - name: Clone deploy script
+        run: |
+          git clone https://%GITHUB_DEPLOY%@github.com/5G-Games/publish_tools.git .
+        shell: cmd
+        env:
+          GITHUB_DEPLOY: ${{ secrets.TOKEN }}
+
+      - name: CDN cache prune
+        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@old_1
+        with:
+          game_id: ${{ inputs.game_id }}
+          branch: ${{ inputs.environment }}
+          cdn_cfe_url: ${{ env.CDN_CFE_URL }}
+          cdn_byteplus_urls: ${{ env.CDN_BYTEPLUS_URLS }}
+          cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
+          cloud_front_extra_ids: ${{ env.CLOUD_FRONT_EXTRA_IDS }}
+          cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
+          cloud_front_api: ${{ secrets.CLOUD_FRONT }}
+          cloud_front_cn_api: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
+          byteplus_cdn_api: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
