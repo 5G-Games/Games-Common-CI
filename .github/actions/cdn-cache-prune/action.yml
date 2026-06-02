@@ -2,17 +2,33 @@ name: 'CDN Cache Prune'
 description: 'Purge CDN cache'
 inputs:
   game_id:
-    description: 'Game ID'
+    description: 'Game ID 或路徑前綴 (e.g. S5G-H5-99927 或 utils/scripts)'
     required: true
   branch:
     description: 'Branch name'
     required: true
+  tools_dir:
+    description: 'publish_tools exe 所在目錄 (含結尾反斜線，例: publish_tools\)。預設空字串表示當前工作目錄。'
+    required: false
+    default: ''
   cdn_cfe_url:
-    description: 'CDN CFE URL'
+    description: 'Cloudflare 下載域名 (單一即可，僅用來定位 zone；要清哪些 download* host 由 exe 從 DNS 自動列舉)'
+    required: false
+    default: ''
+  manifest_path:
+    description: '可快取檔案清單路徑 (upload 步驟產生)；Free zone 走 by-URL 時需要，Enterprise 走 prefix 不需要'
+    required: false
+    default: ''
+  s3_url:
+    description: 'S3 base URL (例: s3://download-hk-demo)；手動補救無 manifest 時，Free zone 用它列檔'
+    required: false
+    default: ''
+  aws_env:
+    description: 'AWS 憑證 (secret)；搭配 s3_url 給 Free zone 手動補救列 S3 用'
     required: false
     default: ''
   cdn_byteplus_urls:
-    description: 'BytePlus CDN base URLs (comma separated)'
+    description: 'BytePlus CDN 網域 (逗號分隔；僅作觸發旗標，實際 URL 由 exe 內建)'
     required: false
     default: ''
   cloud_front_id:
@@ -20,7 +36,7 @@ inputs:
     required: false
     default: ''
   cloud_front_extra_ids:
-    description: 'CloudFront extra IDs (comma separated)'
+    description: 'CloudFront extra IDs (逗號分隔)'
     required: false
     default: ''
   cloud_flare_api:
@@ -42,36 +58,79 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: CDN cache prune
+    - name: Purge Cloudflare
+      if: inputs.cdn_cfe_url != ''
       shell: cmd
+      continue-on-error: true
       run: |
-        IF NOT "%INPUT_CDN_CFE_URL%"=="" (
-            ECHO Processing Cloudflare: %INPUT_CDN_CFE_URL%
-            dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID%
-        )
-        IF NOT "%INPUT_CLOUD_FRONT_ID%"=="" (
-            ECHO Processing CloudFront: %INPUT_CLOUD_FRONT_ID%
-            cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_API
-        )
-        IF NOT "%INPUT_CLOUD_FRONT_EXTRA_IDS%"=="" (
-            ECHO Processing CloudFront extra distributions...
-            FOR %%i IN (%INPUT_CLOUD_FRONT_EXTRA_IDS%) DO (
-                ECHO Processing CloudFront: %%i
-                cloudfront_PurgeCache.exe %INPUT_GAME_ID% %%i CLOUD_FRONT_CN_API
-            )
-        )
-        IF NOT "%CDN_BASE_URLS%"=="" (
-            ECHO Processing BytePlus CDN
-            byteplus_cdn_purge.exe %INPUT_GAME_ID% BYTEPLUS_CDN_API
+        REM cdn_cfe_url 只用來定位 zone；實際清哪些 download* host 由 exe 從該 zone 的 DNS records 列舉
+        REM Enterprise zone 走 prefix purge {host}/{game_id}/；Free zone 讀 manifest 走 by-URL
+        ECHO Purging Cloudflare (zone of %INPUT_CDN_CFE_URL%) for: %INPUT_GAME_ID%
+        %TOOLS_DIR%dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID% %INPUT_MANIFEST_PATH%
+      env:
+        TOOLS_DIR: ${{ inputs.tools_dir }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
+        INPUT_MANIFEST_PATH: ${{ inputs.manifest_path }}
+        INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
+        # S3 fallback (manual purge with no manifest); ignored when manifest is present
+        PURGE_S3_URL: ${{ inputs.s3_url }}
+        AWS_ENV: ${{ inputs.aws_env }}
+
+    - name: Purge CloudFront (auto-discover by origin)
+      if: inputs.s3_url != '' && inputs.cloud_front_cn_api != ''
+      shell: cmd
+      continue-on-error: true
+      run: |
+        REM 列出 origin = 該環境 S3 bucket 的所有 distribution，逐一 invalidate /<game_id>/*
+        REM 新增 distribution 自動涵蓋，不需維護 CLOUD_FRONT_EXTRA_IDS
+        ECHO Auto-discovering CloudFront distributions for bucket: %INPUT_S3_URL%
+        %TOOLS_DIR%cloudfront_PurgeCache.exe %INPUT_GAME_ID% --origin %INPUT_S3_URL% CLOUD_FRONT_CN_API
+      env:
+        TOOLS_DIR: ${{ inputs.tools_dir }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_S3_URL: ${{ inputs.s3_url }}
+        CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
+
+    - name: Purge CloudFront (primary, explicit)
+      if: inputs.cloud_front_id != ''
+      shell: cmd
+      continue-on-error: true
+      run: |
+        ECHO Purging CloudFront: %INPUT_CLOUD_FRONT_ID%
+        %TOOLS_DIR%cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_API
+      env:
+        TOOLS_DIR: ${{ inputs.tools_dir }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
+        CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
+
+    - name: Purge CloudFront (extras)
+      if: inputs.cloud_front_extra_ids != ''
+      shell: cmd
+      continue-on-error: true
+      run: |
+        FOR %%i IN (%INPUT_CLOUD_FRONT_EXTRA_IDS%) DO (
+            ECHO Purging CloudFront: %%i
+            %TOOLS_DIR%cloudfront_PurgeCache.exe %INPUT_GAME_ID% %%i CLOUD_FRONT_CN_API
         )
       env:
+        TOOLS_DIR: ${{ inputs.tools_dir }}
         INPUT_GAME_ID: ${{ inputs.game_id }}
-        INPUT_BRANCH: ${{ inputs.branch }}
-        INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
-        INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
         INPUT_CLOUD_FRONT_EXTRA_IDS: ${{ inputs.cloud_front_extra_ids }}
-        INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
-        CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
         CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
+
+    - name: Purge BytePlus (auto-discover domains)
+      if: inputs.cdn_byteplus_urls != ''
+      shell: cmd
+      continue-on-error: true
+      run: |
+        REM 自動發現帳號下 download* 域名，union 已知清單，dir purge {域名}/<game_id>/
+        REM 新域名自動涵蓋；gating 在 cdn_byteplus_urls（僅 prod 設）確保不跨環境
+        ECHO Purging BytePlus CDN (auto-discover download* domains) for: %INPUT_GAME_ID%
+        %TOOLS_DIR%byteplus_cdn_purge.exe purge-game --game-id %INPUT_GAME_ID% --auto-domains --base-urls-env CDN_BASE_URLS
+      env:
+        TOOLS_DIR: ${{ inputs.tools_dir }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}
         CDN_BASE_URLS: ${{ inputs.cdn_byteplus_urls }}
-        BYTEPLUS_CDN_API: ${{ inputs.byteplus_cdn_api }}
+        BYTEPLUS_CDN_API_CREDENTIALS: ${{ inputs.byteplus_cdn_api }}
