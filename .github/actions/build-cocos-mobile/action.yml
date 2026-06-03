@@ -7,6 +7,10 @@ inputs:
   cocos_version:
     description: 'Cocos Creator version path'
     required: true
+  enable_low_res:
+    description: 'Run low-res asset conversion (create_low_res.exe) before build'
+    required: false
+    default: 'false'
 runs:
   using: 'composite'
   steps:
@@ -14,7 +18,13 @@ runs:
       shell: cmd
       run: |
         echo cd game\%INPUT_GAME_ID% >> build.bat
+        echo echo =====[ASSETS DIRTY CHECK BEGIN]===== >> build.bat
+        echo git status --porcelain -- assets >> build.bat
+        echo echo =====[ASSETS DIRTY CHECK END]===== >> build.bat
         echo git restore --source=HEAD --staged --worktree assets >> build.bat
+        echo IF "%ENABLE_LOW_RES%"=="true" echo =====[LOW-RES] running create_low_res.exe ... >> build.bat
+        echo IF "%ENABLE_LOW_RES%"=="true" CALL ..\..\create_low_res.exe >> build.bat
+        echo IF "%ENABLE_LOW_RES%"=="true" IF %%ERRORLEVEL%% NEQ 0 exit /b %%ERRORLEVEL%% >> build.bat
         echo CALL %INPUT_COCOS_VERSION% --no-cache --clear-cache --project . --build "platform=web-mobile;debug=false;md5Cache=true" >> build.bat
         echo IF EXIST build\web-mobile\5g_2.*.gif IF NOT EXIST build\web-mobile\5g_2.gif MOVE /Y build\web-mobile\5g_2.*.gif build\web-mobile\5g_2.gif >> build.bat
         echo IF EXIST build\web-mobile\5g_logo.*.png IF NOT EXIST build\web-mobile\5g_logo.png MOVE /Y build\web-mobile\5g_logo.*.png build\web-mobile\5g_logo.png >> build.bat
@@ -27,6 +37,7 @@ runs:
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_COCOS_VERSION: ${{ inputs.cocos_version }}
+        ENABLE_LOW_RES: ${{ inputs.enable_low_res }}
     - name: Remove remote bundle from settings.json
       shell: powershell
       run: |
