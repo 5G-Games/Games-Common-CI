@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       game_id:
-        description: 'Game ID (e.g. S5G-H5-99927)'
+        description: 'Game ID 或路徑 (e.g. S5G-H5-99927 或 utils/scripts)'
         required: true
         type: string
       environment:
@@ -17,6 +17,16 @@ on:
           - uat
           - stage
           - prod
+      extra_cloud_front_ids:
+        description: '額外 CloudFront ID (逗號分隔，補救新 distribution 用)'
+        required: false
+        type: string
+        default: ''
+      extra_byteplus_urls:
+        description: '額外 BytePlus 網域 (逗號分隔，補救新域名用)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   purge:
@@ -34,16 +44,28 @@ jobs:
         env:
           GITHUB_DEPLOY: ${{ secrets.TOKEN }}
 
+      - name: Merge default and extra BytePlus targets
+        shell: cmd
+        run: |
+          SET "MERGED_BP=%DEFAULT_BP%"
+          IF NOT "%EXTRA_BP%"=="" (
+              IF "%MERGED_BP%"=="" (SET "MERGED_BP=%EXTRA_BP%") ELSE (SET "MERGED_BP=%MERGED_BP%,%EXTRA_BP%")
+          )
+          ECHO MERGED_CDN_BYTEPLUS_URLS=%MERGED_BP%>> %GITHUB_ENV%
+        env:
+          DEFAULT_BP: ${{ env.CDN_BYTEPLUS_URLS }}
+          EXTRA_BP: ${{ inputs.extra_byteplus_urls }}
+
       - name: CDN cache prune
         uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@old_1
         with:
           game_id: ${{ inputs.game_id }}
           branch: ${{ inputs.environment }}
           cdn_cfe_url: ${{ env.CDN_CFE_URL }}
-          cdn_byteplus_urls: ${{ env.CDN_BYTEPLUS_URLS }}
-          cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
-          cloud_front_extra_ids: ${{ env.CLOUD_FRONT_EXTRA_IDS }}
+          s3_url: ${{ env.S3_URL }}
+          aws_env: ${{ secrets.AWS_ENV }}
+          cdn_byteplus_urls: ${{ env.MERGED_CDN_BYTEPLUS_URLS }}
+          cloud_front_extra_ids: ${{ inputs.extra_cloud_front_ids }}
           cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
-          cloud_front_api: ${{ secrets.CLOUD_FRONT }}
           cloud_front_cn_api: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
           byteplus_cdn_api: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}

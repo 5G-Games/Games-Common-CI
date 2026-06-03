@@ -7,6 +7,10 @@ inputs:
   s3_url:
     description: 'S3 URL'
     required: true
+  manifest_path:
+    description: '可快取檔案清單輸出路徑 (給 CDN purge 步驟讀)；留空則不產生'
+    required: false
+    default: ''
 runs:
   using: 'composite'
   steps:
@@ -14,8 +18,9 @@ runs:
       shell: cmd
       run: |
         IF EXIST deploy\%INPUT_GAME_ID%  XCOPY /I /E /Y  deploy\%INPUT_GAME_ID% %INPUT_GAME_ID%
-        upload_project_to_s3.exe %INPUT_S3_URL% %INPUT_GAME_ID% AWS_ENV ap-east-1
+        upload_project_to_s3.exe %INPUT_S3_URL% %INPUT_GAME_ID% AWS_ENV ap-east-1 %INPUT_MANIFEST_PATH%
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_S3_URL: ${{ inputs.s3_url }}
+        INPUT_MANIFEST_PATH: ${{ inputs.manifest_path }}
 

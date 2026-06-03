@@ -152,6 +152,7 @@ jobs:
         with:
           game_id: ${{ inputs.GAME_ID }}
           s3_url: ${{ env.S3_URL }}
+          manifest_path: ${{ github.workspace }}\purge_manifest.txt
 
       - name: CDN cache prune
         uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@old_1
@@ -159,12 +160,11 @@ jobs:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
           cdn_cfe_url: ${{ env.CDN_CFE_URL }}
-          cdn_byteplus_urls: ${{ env.CDN_BYTEPLUS_URLS }}
-          cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
-          cloud_front_extra_ids: ${{ env.CLOUD_FRONT_EXTRA_IDS }}
+          manifest_path: ${{ github.workspace }}\purge_manifest.txt
+          s3_url: ${{ env.S3_URL }}
           cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
-          cloud_front_api: ${{ secrets.CLOUD_FRONT }}
           cloud_front_cn_api: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
+          cdn_byteplus_urls: ${{ env.CDN_BYTEPLUS_URLS }}
           byteplus_cdn_api: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
 
       - name: Slack Notification - Complete
