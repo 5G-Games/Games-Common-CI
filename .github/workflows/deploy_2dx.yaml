@@ -157,6 +157,8 @@ jobs:
       - name: Configure GitLab Submodule URL with Token
         run: |
           git config --global url."https://%GITHUB_DEPLOY%@github.com/".insteadOf "git@github.com:"
+          git config --global url."https://%GITHUB_DEPLOY%@github.com/5G-Games/frameworks.git".insteadOf "https://github.com/5G-Games/frameworks.git"
+          git config --global url."https://%GITHUB_DEPLOY%@github.com/5G-Games/module_2dx.git".insteadOf "https://github.com/5G-Games/module_2dx.git"
         shell: cmd
       # clone deploy script
       - name: clone deploy script
