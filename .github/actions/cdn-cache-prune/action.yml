@@ -43,10 +43,6 @@ inputs:
     description: 'CloudFlare API token'
     required: false
     default: ''
-  cloud_front_api:
-    description: 'CloudFront API (secret)'
-    required: false
-    default: ''
   cloud_front_cn_api:
     description: 'CloudFront CN API (secret)'
     required: false
@@ -98,12 +94,12 @@ runs:
       continue-on-error: true
       run: |
         ECHO Purging CloudFront: %INPUT_CLOUD_FRONT_ID%
-        %TOOLS_DIR%cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_API
+        %TOOLS_DIR%cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_CN_API
       env:
         TOOLS_DIR: ${{ inputs.tools_dir }}
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
-        CLOUD_FRONT_API: ${{ inputs.cloud_front_api }}
+        CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
 
     - name: Purge CloudFront (extras)
       if: inputs.cloud_front_extra_ids != ''

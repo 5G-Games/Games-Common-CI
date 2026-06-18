@@ -19,12 +19,10 @@ on:
         required: true
       AWS_ENV:
         required: true
-      CLOUD_FRONT:
-        required: true
       CLOUD_FLARE:
         required: true
       SADP_AWSCLI_CLOUDFRONT:
-        required: false
+        required: true
       BYTEPLUS_CDN_API_CREDENTIALS:
         required: false
       WEBHOOK_URL:
@@ -41,7 +39,6 @@ env:
   GITHUB_DEPLOY: ${{ secrets.TOKEN }}
   AWS_ENV: ${{ secrets.AWS_ENV }}
   # purge CDN cache
-  CLOUD_FRONT_API: ${{ secrets.CLOUD_FRONT }}
   CLOUD_FLARE_API: ${{ secrets.CLOUD_FLARE }}
   CLOUD_FRONT_CN_API: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
   BYTEPLUS_CDN_API: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
@@ -243,7 +240,7 @@ jobs:
           )
           IF NOT "%CLOUD_FRONT_ID%"=="" (
               ECHO Processing CloudFront: %CLOUD_FRONT_ID%
-              cloudfront_PurgeCache.exe %GAME_ID% %CLOUD_FRONT_ID% CLOUD_FRONT_API
+              cloudfront_PurgeCache.exe %GAME_ID% %CLOUD_FRONT_ID% CLOUD_FRONT_CN_API
           )
           IF NOT "%CLOUD_FRONT_EXTRA_IDS%"=="" (
               ECHO Processing CloudFront extra distributions...
