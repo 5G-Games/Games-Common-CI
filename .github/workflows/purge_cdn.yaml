@@ -44,6 +44,5 @@ jobs:
           cloud_front_id: ${{ env.CLOUD_FRONT_ID }}
           cloud_front_extra_ids: ${{ env.CLOUD_FRONT_EXTRA_IDS }}
           cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
-          cloud_front_api: ${{ secrets.CLOUD_FRONT }}
           cloud_front_cn_api: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
           byteplus_cdn_api: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
