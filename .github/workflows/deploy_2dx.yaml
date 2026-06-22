@@ -227,19 +227,19 @@ jobs:
       # cdn cache prune.
       - name: cdn cache prune.
         run: |
-          REM Cloudflare：exe 自動列舉該 zone 下 download* hosts；2dx 無 manifest，靠 PURGE_S3_URL 列 S3 檔案 (Free zone)
+          REM Cloudflare: exe auto-lists download* hosts in zone; 2dx has no manifest so use PURGE_S3_URL to list S3 files for Free zone
           IF NOT "%CDN_CFE_URL%"=="" (
-              ECHO Purging Cloudflare (zone of %CDN_CFE_URL%) for: %GAME_ID%
+              ECHO Purging Cloudflare zone of %CDN_CFE_URL% for %GAME_ID%
               dns_PurgeCache.exe %CLOUD_FLARE_API% %CDN_CFE_URL% %GAME_ID%
           )
-          REM CloudFront：auto-discover by origin，列出 origin=該 S3 bucket 的 distribution 並清 /<game_id>/*，不再依賴寫死 ID
+          REM CloudFront: auto-discover by origin - list distributions whose origin is the S3 bucket and purge game_id path; no hardcoded IDs
           IF NOT "%S3_URL%"=="" (
-              ECHO Auto-discovering CloudFront distributions for bucket: %S3_URL%
+              ECHO Auto-discovering CloudFront distributions for bucket %S3_URL%
               cloudfront_PurgeCache.exe %GAME_ID% --origin %S3_URL% CLOUD_FRONT_CN_API
           )
-          REM BytePlus：自動發現帳號下 download* 域名
+          REM BytePlus: auto-discover download* domains
           IF NOT "%CDN_BYTEPLUS_URLS%"=="" (
-              ECHO Purging BytePlus CDN (auto-discover download* domains) for: %GAME_ID%
+              ECHO Purging BytePlus CDN auto-discover domains for %GAME_ID%
               byteplus_cdn_purge.exe purge-game --game-id %GAME_ID% --auto-domains --base-urls-env CDN_BASE_URLS
           )
         env:
