@@ -93,46 +93,37 @@ jobs:
               ECHO BRANCH=dev>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
               ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "main" (
               ECHO BRANCH=main>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
               ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "demo" (
               ECHO BRANCH=demo>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
               ECHO S3_URL=s3://download-hk-demo>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E21L9L76V6OI5M>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_EXTRA_IDS=E3A1LWE3XRBBWV,E3TPM36LX847OX>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "uat" (
               ECHO BRANCH=uat>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
               ECHO S3_URL=s3://download-hk-uat>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E1WC6JK0YZPPS7>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "stage" (
               ECHO BRANCH=stage>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
               ECHO S3_URL=s3://download-hk.kyslot.com>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3GCTUVGLK388H>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
           ) ELSE IF /I "%GITHUB_REF_NAME%" == "prod" (
               ECHO BRANCH=prod>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
               ECHO S3_URL=s3://download.kyslot.io>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_EXTRA_IDS=E2L0JORX06PQAQ,E2DVZJS6SZ2ONK,EW360E9PAF7JW,E314PE6KDDAWVC,E2WU7ENNR9YDME,E198WMSM3JKBHI,E3Q0J4X36TOZU7>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
               ECHO CDN_BYTEPLUS_URLS=https://download.figoldgod.vip,https://download.figungun.win,https://download.yapyifkt.vip,https://download.xmlkdzbz.vip,https://download.figoogoo.com>> %GITHUB_ENV%
           ) ELSE (
               ECHO BRANCH=%GITHUB_REF_NAME%>> %GITHUB_ENV%
               ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
               ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
-              ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
               ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
           )
         env:
@@ -236,25 +227,25 @@ jobs:
       # cdn cache prune.
       - name: cdn cache prune.
         run: |
+          REM Cloudflare：exe 自動列舉該 zone 下 download* hosts；2dx 無 manifest，靠 PURGE_S3_URL 列 S3 檔案 (Free zone)
           IF NOT "%CDN_CFE_URL%"=="" (
-              ECHO Processing Cloudflare: %CDN_CFE_URL%
+              ECHO Purging Cloudflare (zone of %CDN_CFE_URL%) for: %GAME_ID%
               dns_PurgeCache.exe %CLOUD_FLARE_API% %CDN_CFE_URL% %GAME_ID%
           )
-          IF NOT "%CLOUD_FRONT_ID%"=="" (
-              ECHO Processing CloudFront: %CLOUD_FRONT_ID%
-              cloudfront_PurgeCache.exe %GAME_ID% %CLOUD_FRONT_ID% CLOUD_FRONT_CN_API
+          REM CloudFront：auto-discover by origin，列出 origin=該 S3 bucket 的 distribution 並清 /<game_id>/*，不再依賴寫死 ID
+          IF NOT "%S3_URL%"=="" (
+              ECHO Auto-discovering CloudFront distributions for bucket: %S3_URL%
+              cloudfront_PurgeCache.exe %GAME_ID% --origin %S3_URL% CLOUD_FRONT_CN_API
           )
-          IF NOT "%CLOUD_FRONT_EXTRA_IDS%"=="" (
-              ECHO Processing CloudFront extra distributions...
-              FOR %%i IN (%CLOUD_FRONT_EXTRA_IDS%) DO (
-                  ECHO Processing CloudFront: %%i
-                  cloudfront_PurgeCache.exe %GAME_ID% %%i CLOUD_FRONT_CN_API
-              )
-          )
+          REM BytePlus：自動發現帳號下 download* 域名
           IF NOT "%CDN_BYTEPLUS_URLS%"=="" (
-              ECHO Processing BytePlus CDN
-              byteplus_cdn_purge.exe %GAME_ID% BYTEPLUS_CDN_API
+              ECHO Purging BytePlus CDN (auto-discover download* domains) for: %GAME_ID%
+              byteplus_cdn_purge.exe purge-game --game-id %GAME_ID% --auto-domains --base-urls-env CDN_BASE_URLS
           )
+        env:
+          PURGE_S3_URL: ${{ env.S3_URL }}
+          CDN_BASE_URLS: ${{ env.CDN_BYTEPLUS_URLS }}
+          BYTEPLUS_CDN_API_CREDENTIALS: ${{ secrets.BYTEPLUS_CDN_API_CREDENTIALS }}
         shell: cmd
 
       - name: Slack Notification
