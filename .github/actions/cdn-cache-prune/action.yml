@@ -20,7 +20,7 @@ inputs:
     required: false
     default: ''
   s3_url:
-    description: 'S3 base URL (例: s3://download-hk-demo)；手動補救無 manifest 時，Free zone 用它列檔'
+    description: 'S3 base URL (例: s3://download-5gdemo)；手動補救無 manifest 時，Free zone 用它列檔'
     required: false
     default: ''
   aws_env:

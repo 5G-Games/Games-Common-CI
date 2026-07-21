@@ -26,42 +26,42 @@ runs:
         IF /I "%REF_NAME%" == "dev" (
             ECHO BRANCH=dev>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
-            ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-5gdev>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_EXTRA_IDS=E1VYBNNABPC3A0,E321WG3XRYRLVM>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
         ) ELSE IF /I "%REF_NAME%" == "main" (
             ECHO BRANCH=main>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-            ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-5gdev>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_EXTRA_IDS=E1VYBNNABPC3A0,E321WG3XRYRLVM>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
         ) ELSE IF /I "%REF_NAME%" == "demo" (
             ECHO BRANCH=demo>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-            ECHO S3_URL=s3://download-hk-demo>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-5gdemo>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E21L9L76V6OI5M>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_EXTRA_IDS=E3A1LWE3XRBBWV,E3TPM36LX847OX>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
         ) ELSE IF /I "%REF_NAME%" == "uat" (
             ECHO BRANCH=uat>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
-            ECHO S3_URL=s3://download-hk-uat>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-5guat>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E1WC6JK0YZPPS7>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_EXTRA_IDS=EJZ36UVVHKY8Y,E3HJ5LM3X5DU0P>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
         ) ELSE IF /I "%REF_NAME%" == "stage" (
             ECHO BRANCH=stage>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-            ECHO S3_URL=s3://download-hk.kyslot.com>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-5gstage>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E3GCTUVGLK388H>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_EXTRA_IDS=EKOF83R9EM3YH,E3T8BMET6PT6MR>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download-hk.5gg.dev>> %GITHUB_ENV%
         ) ELSE IF /I "%REF_NAME%" == "prod" (
             ECHO BRANCH=prod>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__RELEASE__>> %GITHUB_ENV%
-            ECHO S3_URL=s3://download.kyslot.io>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-5g>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E27Z0CYQVQTLDA>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_EXTRA_IDS=E2L0JORX06PQAQ,E2DVZJS6SZ2ONK,EW360E9PAF7JW,E314PE6KDDAWVC,E2WU7ENNR9YDME,E198WMSM3JKBHI,E3Q0J4X36TOZU7>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download.figoogoo.com>> %GITHUB_ENV%
@@ -69,7 +69,7 @@ runs:
         ) ELSE (
             ECHO BRANCH=%REF_NAME%>> %GITHUB_ENV%
             ECHO DEPLOY_TYPE=__DEBUG__>> %GITHUB_ENV%
-            ECHO S3_URL=s3://ky-stage-download>> %GITHUB_ENV%
+            ECHO S3_URL=s3://download-5gdev>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_ID=E3H9BTS8MN36PQ>> %GITHUB_ENV%
             ECHO CLOUD_FRONT_EXTRA_IDS=E1VYBNNABPC3A0,E321WG3XRYRLVM>> %GITHUB_ENV%
             ECHO CDN_CFE_URL=download-hk.5gg.win>> %GITHUB_ENV%
