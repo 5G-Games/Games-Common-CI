@@ -42,6 +42,6 @@ runs:
             ECHO remote-bundle not prepared, skip upload.
             EXIT /B 0
         )
-        upload_remote_to_s3.exe %INPUT_S3_URL% remote-bundle AWS_ENV ap-east-1
+        upload_remote_to_s3.exe %INPUT_S3_URL% remote-bundle AWS_ENV ap-southeast-1
       env:
         INPUT_S3_URL: ${{ inputs.s3_url }}
