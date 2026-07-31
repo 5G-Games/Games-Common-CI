@@ -43,7 +43,7 @@ env:
   # Cocos Creator Version
   COCOS_VERSION: ${{ format('C:\ProgramData\cocos\editors\Creator\{0}\CocosCreator.exe', inputs.COCOS_CREATOR_VERSION || '3.7.2') }}
   DEPLOY_STR: creator
-  SLACK: true
+  SLACK: false
   #DEPLOY_STR: 2dx
 
   # repositories
