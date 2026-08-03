@@ -43,7 +43,7 @@ env:
   # Cocos Creator Version
   COCOS_VERSION: ${{ format('C:\ProgramData\cocos\editors\Creator\{0}\CocosCreator.exe', inputs.COCOS_CREATOR_VERSION || '3.7.2') }}
   DEPLOY_STR: creator
-  SLACK: false
+  SLACK: true
   #DEPLOY_STR: 2dx
 
   # repositories
@@ -110,6 +110,7 @@ jobs:
 
       - name: Slack Notification - Start
         if: ${{ env.SLACK == 'true' }}
+        continue-on-error: true   # 通知失敗不可中斷部署
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_deploy
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
@@ -230,6 +231,7 @@ jobs:
 
       - name: Slack Notification - Complete
         if: ${{ env.SLACK == 'true' }}
+        continue-on-error: true   # 通知失敗不可中斷部署
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_deploy
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
