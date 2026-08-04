@@ -49,6 +49,7 @@ jobs:
     steps:
       - name: Slack Notification
         if: ${{ always() }}
+        continue-on-error: true   # 通知失敗不可中斷部署
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         shell: powershell
@@ -71,14 +72,19 @@ jobs:
           $message += "Run: ${{ github.server_url }}/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n"
           $message += "Compare: ${{ github.event.compare || 'N/A' }}"
 
-          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
-            attachments = @(
-              @{
-                color = $color
-                text = $message
-              }
-            )
-          } | ConvertTo-Json) -ContentType 'application/json'
+          # Slack 通知是附屬功能，webhook 失效時只發 warning，不中斷部署
+          try {
+            Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
+              attachments = @(
+                @{
+                  color = $color
+                  text = $message
+                }
+              )
+            } | ConvertTo-Json) -ContentType 'application/json' | Out-Null
+          } catch {
+            Write-Host "::warning title=Slack notification failed::Webhook post failed (deploy continues): $($_.Exception.Message)"
+          }
       - name: Setup branch env (CMD)
         run: |
           REM If environment input is provided, use it; otherwise use github_ref_name
@@ -250,6 +256,7 @@ jobs:
 
       - name: Slack Notification
         if: ${{ always() }}
+        continue-on-error: true   # 通知失敗不可中斷部署
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         shell: powershell
@@ -272,11 +279,16 @@ jobs:
           $message += "Run: ${{ github.server_url }}/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID`n"
           $message += "Compare: ${{ github.event.compare || 'N/A' }}"
 
-          Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
-            attachments = @(
-              @{
-                color = $color
-                text = $message
-              }
-            )
-          } | ConvertTo-Json) -ContentType 'application/json'
+          # Slack 通知是附屬功能，webhook 失效時只發 warning，不中斷部署
+          try {
+            Invoke-RestMethod -Uri $env:SLACK_WEBHOOK_URL -Method Post -Body (@{
+              attachments = @(
+                @{
+                  color = $color
+                  text = $message
+                }
+              )
+            } | ConvertTo-Json) -ContentType 'application/json' | Out-Null
+          } catch {
+            Write-Host "::warning title=Slack notification failed::Webhook post failed (deploy continues): $($_.Exception.Message)"
+          }

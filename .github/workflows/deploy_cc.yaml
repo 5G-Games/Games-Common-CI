@@ -106,6 +106,7 @@ jobs:
 
       - name: Slack Notification - Start
         if: ${{ env.SLACK == 'true' }}
+        continue-on-error: true   # 通知失敗不可中斷部署
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_deploy
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
@@ -223,6 +224,7 @@ jobs:
 
       - name: Slack Notification - Complete
         if: ${{ env.SLACK == 'true' }}
+        continue-on-error: true   # 通知失敗不可中斷部署
         uses: 5G-Games/Games-Common-CI/.github/actions/slack-notification@new_deploy
         with:
           webhook_url: ${{ secrets.WEBHOOK_URL }}
