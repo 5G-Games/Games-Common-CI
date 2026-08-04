@@ -103,6 +103,13 @@ runs:
         $utf8NoBom = New-Object System.Text.UTF8Encoding $false
         $jsonBytes = $utf8NoBom.GetBytes($jsonBody)
         
-        Invoke-RestMethod -Uri $env:INPUT_WEBHOOK_URL -Method Post -Body $jsonBytes -ContentType 'application/json; charset=utf-8'
+        # Slack 通知是附屬功能，webhook 失效（例如建立者帳號被停用 -> 404）時
+        # 只發 warning，不讓 step 失敗，後續 build step 照常執行。
+        try {
+            Invoke-RestMethod -Uri $env:INPUT_WEBHOOK_URL -Method Post -Body $jsonBytes -ContentType 'application/json; charset=utf-8' | Out-Null
+            Write-Host "Slack notification sent."
+        } catch {
+            Write-Host "::warning title=Slack notification failed::Webhook post failed (deploy continues): $($_.Exception.Message)"
+        }
 
 
