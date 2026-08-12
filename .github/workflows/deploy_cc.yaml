@@ -206,6 +206,38 @@ jobs:
           s3_url: ${{ env.S3_URL }}
           manifest_path: ${{ github.workspace }}\purge_manifest.txt
 
+      # .pack 是 build 期預壓的 brotli（見 build-templates/scripts/build-zip.js），
+      # 必須帶 Content-Encoding: br 瀏覽器才會原生解壓；upload exe 不支援自訂
+      # metadata（.pack 會拿到 no-cache 且無 encoding），故上傳後補一發 self-copy。
+      # 只在 build 產出 .pack 時觸發；aws cli 未安裝只警告不擋 build（前端會走
+      # 逐檔 fallback，不會壞、只是拿不到 pack 收益）。後續 CDN cache prune 讓新 metadata 生效。
+      - name: Fix pack metadata (Content-Encoding br)
+        shell: powershell
+        run: |
+          $pack = Get-ChildItem "$env:INPUT_GAME_ID\assets\bundles.*.pack" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $pack) { Write-Host "No .pack in build output, skipping"; exit 0 }
+          if (-not (Get-Command aws -ErrorAction SilentlyContinue)) {
+            Write-Warning ".pack found but aws cli is not installed on this runner; pack will be served WITHOUT Content-Encoding: br and players fall back to per-file HTTP. Install AWS CLI v2 (msi) to enable."
+            exit 0
+          }
+          $rawEnv = $env:AWS_ENV -replace '\\n', "`n"
+          foreach ($line in $rawEnv -split "`r?`n") {
+            if ($line -match '^\s*([A-Z_]+)=(.*)$') {
+              Set-Item -Path "env:$($Matches[1])" -Value $Matches[2].Trim()
+            }
+          }
+          $env:AWS_DEFAULT_REGION = 'ap-southeast-1'
+          $bucket = $env:INPUT_S3_URL -replace '^s3://', ''
+          $dest = "s3://$bucket/$env:INPUT_GAME_ID/assets/$($pack.Name)"
+          aws s3 cp $dest $dest `
+            --content-encoding br --content-type application/octet-stream `
+            --cache-control "public, max-age=31536000" --metadata-directive REPLACE
+          if ($LASTEXITCODE -ne 0) { Write-Warning "pack metadata fix failed (exit $LASTEXITCODE); pack falls back per-file"; exit 0 }
+          Write-Host "OK: $dest now served with Content-Encoding: br"
+        env:
+          INPUT_GAME_ID: ${{ inputs.GAME_ID }}
+          INPUT_S3_URL: ${{ env.S3_URL }}
+
       - name: Upload Remote Bundle (Templete only)
         if: ${{ inputs.GAME_ID == 'Templete' }}
         uses: 5G-Games/Games-Common-CI/.github/actions/upload-remote-bundle@new_deploy
