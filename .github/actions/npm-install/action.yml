@@ -9,9 +9,12 @@ runs:
   steps:
     - name: npm install
       shell: cmd
+      # 只裝 production 依賴：devDependencies（lefthook/prettier/@s5g/devkit）是開發機工具，
+      # 其中 devkit 是 git+ssh 依賴，runner 只有 TOKEN(https) 憑證，碰到會掛死等 SSH 提示。
+      # --ignore-scripts 同時跳過 prepare（hook 安裝在 runner 上無意義）
       run: |
         cd game\%INPUT_GAME_ID%
-        npm install
+        npm install --omit=dev --ignore-scripts
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
 
