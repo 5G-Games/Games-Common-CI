@@ -1,9 +1,31 @@
 name: 'Cleanup Workspace'
-description: 'Remove old workspace files'
+description: 'Remove old workspace files (retries on locked files)'
+inputs:
+  best_effort:
+    description: 'true = 重試後仍有檔案被鎖就放行不失敗（build 後清理用，殘留交給下次 build 前的 strict 清理）'
+    required: false
+    default: 'false'
 runs:
   using: 'composite'
   steps:
     - name: Remove old workspace
       shell: powershell
       run: |
-        rm -Recurse -Force ${{github.workspace}}\*
+        $ws = "${{ github.workspace }}"
+        $bestEffort = "${{ inputs.best_effort }}" -eq 'true'
+        for ($i = 1; $i -le 5; $i++) {
+          try {
+            Get-ChildItem -LiteralPath $ws -Force -ErrorAction Stop | Remove-Item -Recurse -Force -ErrorAction Stop
+            Write-Host "Workspace cleaned (attempt $i)."
+            exit 0
+          } catch {
+            Write-Host "Attempt ${i}: locked files remain ($($_.Exception.Message)); retry in 10s..."
+            Start-Sleep -Seconds 10
+          }
+        }
+        Get-ChildItem -LiteralPath $ws -Force | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        $left = (Get-ChildItem -LiteralPath $ws -Force | Measure-Object).Count
+        if ($left -eq 0) { Write-Host "Workspace cleaned on final sweep."; exit 0 }
+        if ($bestEffort) { Write-Host "$left item(s) still locked; leaving them for the pre-build strict cleanup."; exit 0 }
+        Write-Error "$left item(s) could not be removed after 5 attempts."
+        exit 1

@@ -54,25 +54,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Purge Cloudflare
-      if: inputs.cdn_cfe_url != ''
-      shell: cmd
-      continue-on-error: true
-      run: |
-        REM cdn_cfe_url 只用來定位 zone；實際清哪些 download* host 由 exe 從該 zone 的 DNS records 列舉
-        REM Enterprise zone 走 prefix purge {host}/{game_id}/；Free zone 讀 manifest 走 by-URL
-        ECHO Purging Cloudflare (zone of %INPUT_CDN_CFE_URL%) for: %INPUT_GAME_ID%
-        %TOOLS_DIR%dns_PurgeCache.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID% %INPUT_MANIFEST_PATH%
-      env:
-        TOOLS_DIR: ${{ inputs.tools_dir }}
-        INPUT_GAME_ID: ${{ inputs.game_id }}
-        INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
-        INPUT_MANIFEST_PATH: ${{ inputs.manifest_path }}
-        INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
-        # S3 fallback (manual purge with no manifest); ignored when manifest is present
-        PURGE_S3_URL: ${{ inputs.s3_url }}
-        AWS_ENV: ${{ inputs.aws_env }}
-
     - name: Purge CloudFront (auto-discover by origin)
       if: inputs.s3_url != '' && inputs.cloud_front_cn_api != ''
       shell: cmd
@@ -115,6 +96,28 @@ runs:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_CLOUD_FRONT_EXTRA_IDS: ${{ inputs.cloud_front_extra_ids }}
         CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
+
+    - name: Purge Cloudflare (probe-verified hosts)
+      if: inputs.s3_url != ''
+      shell: cmd
+      continue-on-error: true
+      run: |
+        REM v2 探測制：列舉 token 可見「所有 zone」的 download* proxied host，
+        REM 以 nonce 探測檔驗證「誰此刻在服務本環境 bucket」，只清驗證通過的主機。
+        REM 置於 CloudFront 之後（先清內層再清外層，避免外層回源撿到舊檔）。
+        REM AWS 憑證（探測檔上傳用）：遊戲部署繼承 workflow env AWS_ENV；
+        REM 手動 purge workflow 走 aws_env input（有給就覆蓋）。
+        IF NOT "%INPUT_AWS_ENV%"=="" SET AWS_ENV=%INPUT_AWS_ENV%
+        IF "%INPUT_CDN_CFE_URL%"=="" SET INPUT_CDN_CFE_URL=-
+        %TOOLS_DIR%dns_PurgeCache_v2.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID% %INPUT_MANIFEST_PATH% --s3-url %INPUT_S3_URL%
+      env:
+        TOOLS_DIR: ${{ inputs.tools_dir }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}
+        INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
+        INPUT_MANIFEST_PATH: ${{ inputs.manifest_path }}
+        INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
+        INPUT_S3_URL: ${{ inputs.s3_url }}
+        INPUT_AWS_ENV: ${{ inputs.aws_env }}
 
     - name: Purge BytePlus (auto-discover domains)
       if: inputs.cdn_byteplus_urls != ''

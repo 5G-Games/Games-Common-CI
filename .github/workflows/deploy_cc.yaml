@@ -83,7 +83,7 @@ jobs:
           environment: ${{ inputs.ENVIRONMENT }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
 
@@ -260,6 +260,8 @@ jobs:
 
       - name: Cleanup workspace after build
         uses: 5G-Games/Games-Common-CI/.github/actions/cleanup-workspace@new_deploy
+        with:
+          best_effort: 'true'
 
       - name: Slack Notification - Complete
         if: ${{ env.SLACK == 'true' }}
