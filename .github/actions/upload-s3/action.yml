@@ -16,9 +16,9 @@ runs:
   steps:
     - name: Upload to S3
       shell: cmd
+      # 直接上傳 build 產物，S3 前綴由 --dest 指定（來源資料夾名是 web-mobile，不能沿用 basename 規則）
       run: |
-        IF EXIST deploy\%INPUT_GAME_ID%  XCOPY /I /E /Y  deploy\%INPUT_GAME_ID% %INPUT_GAME_ID%
-        upload_project_to_s3_v2.exe %INPUT_S3_URL% %INPUT_GAME_ID% AWS_ENV ap-southeast-1 %INPUT_MANIFEST_PATH%
+        upload_project_to_s3_v2.exe %INPUT_S3_URL% game\%INPUT_GAME_ID%\build\web-mobile AWS_ENV ap-southeast-1 %INPUT_MANIFEST_PATH% --dest %INPUT_GAME_ID%
       env:
         INPUT_GAME_ID: ${{ inputs.game_id }}
         INPUT_S3_URL: ${{ inputs.s3_url }}

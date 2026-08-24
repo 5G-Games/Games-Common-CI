@@ -4,15 +4,8 @@ inputs:
   game_id:
     description: 'Game ID 或路徑前綴 (e.g. S5G-H5-99927 或 utils/scripts)'
     required: true
-  branch:
-    description: 'Branch name'
-    required: true
   tools_dir:
     description: 'publish_tools exe 所在目錄 (含結尾反斜線，例: publish_tools\)。預設空字串表示當前工作目錄。'
-    required: false
-    default: ''
-  cdn_cfe_url:
-    description: 'Cloudflare 下載域名 (單一即可，僅用來定位 zone；要清哪些 download* host 由 exe 從 DNS 自動列舉)'
     required: false
     default: ''
   manifest_path:
@@ -31,12 +24,8 @@ inputs:
     description: 'BytePlus CDN 網域 (逗號分隔；僅作觸發旗標，實際 URL 由 exe 內建)'
     required: false
     default: ''
-  cloud_front_id:
-    description: 'CloudFront ID (primary)'
-    required: false
-    default: ''
   cloud_front_extra_ids:
-    description: 'CloudFront extra IDs (逗號分隔)'
+    description: 'CloudFront extra IDs (逗號分隔；手動補救新 distribution 用，正常流程靠 by-origin 自動發現)'
     required: false
     default: ''
   cloud_flare_api:
@@ -69,19 +58,6 @@ runs:
         INPUT_S3_URL: ${{ inputs.s3_url }}
         CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
 
-    - name: Purge CloudFront (primary, explicit)
-      if: inputs.cloud_front_id != ''
-      shell: cmd
-      continue-on-error: true
-      run: |
-        ECHO Purging CloudFront: %INPUT_CLOUD_FRONT_ID%
-        %TOOLS_DIR%cloudfront_PurgeCache.exe %INPUT_GAME_ID% %INPUT_CLOUD_FRONT_ID% CLOUD_FRONT_CN_API
-      env:
-        TOOLS_DIR: ${{ inputs.tools_dir }}
-        INPUT_GAME_ID: ${{ inputs.game_id }}
-        INPUT_CLOUD_FRONT_ID: ${{ inputs.cloud_front_id }}
-        CLOUD_FRONT_CN_API: ${{ inputs.cloud_front_cn_api }}
-
     - name: Purge CloudFront (extras)
       if: inputs.cloud_front_extra_ids != ''
       shell: cmd
@@ -108,12 +84,11 @@ runs:
         REM AWS 憑證（探測檔上傳用）：遊戲部署繼承 workflow env AWS_ENV；
         REM 手動 purge workflow 走 aws_env input（有給就覆蓋）。
         IF NOT "%INPUT_AWS_ENV%"=="" SET AWS_ENV=%INPUT_AWS_ENV%
-        IF "%INPUT_CDN_CFE_URL%"=="" SET INPUT_CDN_CFE_URL=-
-        %TOOLS_DIR%dns_PurgeCache_v2.exe %INPUT_CLOUD_FLARE_API% %INPUT_CDN_CFE_URL% %INPUT_GAME_ID% %INPUT_MANIFEST_PATH% --s3-url %INPUT_S3_URL%
+        REM 第二個位置參數是 seed host（僅供印警告用），探測制不需要，固定傳 -
+        %TOOLS_DIR%dns_PurgeCache_v2.exe %INPUT_CLOUD_FLARE_API% - %INPUT_GAME_ID% %INPUT_MANIFEST_PATH% --s3-url %INPUT_S3_URL%
       env:
         TOOLS_DIR: ${{ inputs.tools_dir }}
         INPUT_GAME_ID: ${{ inputs.game_id }}
-        INPUT_CDN_CFE_URL: ${{ inputs.cdn_cfe_url }}
         INPUT_MANIFEST_PATH: ${{ inputs.manifest_path }}
         INPUT_CLOUD_FLARE_API: ${{ inputs.cloud_flare_api }}
         INPUT_S3_URL: ${{ inputs.s3_url }}

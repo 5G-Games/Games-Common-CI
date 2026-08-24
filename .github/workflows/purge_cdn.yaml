@@ -33,7 +33,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64]
     steps:
       - name: Setup branch env
-        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@test_slim_pipeline
         with:
           github_ref_name: ${{ inputs.environment }}
 
@@ -57,11 +57,9 @@ jobs:
           EXTRA_BP: ${{ inputs.extra_byteplus_urls }}
 
       - name: CDN cache prune
-        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@test_slim_pipeline
         with:
           game_id: ${{ inputs.game_id }}
-          branch: ${{ inputs.environment }}
-          cdn_cfe_url: ${{ env.CDN_CFE_URL }}
           s3_url: ${{ env.S3_URL }}
           aws_env: ${{ secrets.AWS_ENV }}
           cdn_byteplus_urls: ${{ env.MERGED_CDN_BYTEPLUS_URLS }}

@@ -39,45 +39,33 @@ on:
       WEBHOOK_URL:
         required: true
 env:
-  GAME_ID: ${{ inputs.GAME_ID }}
   # Cocos Creator Version
   COCOS_VERSION: ${{ format('C:\ProgramData\cocos\editors\Creator\{0}\CocosCreator.exe', inputs.COCOS_CREATOR_VERSION || '3.7.2') }}
-  DEPLOY_STR: creator
   SLACK: true
-  #DEPLOY_STR: 2dx
-
-  # repositories
-  GITHUB_DEPLOY: ${{ secrets.TOKEN }}
+  # 上傳與 CDN 探測的 exe 在執行期讀名為 AWS_ENV 的環境變數（composite step 繼承 workflow env）
   AWS_ENV: ${{ secrets.AWS_ENV }}
-  # purge CDN cache
-  CLOUD_FLARE_API: ${{ secrets.CLOUD_FLARE }}
-  CLOUD_FRONT_CN_API: ${{ secrets.SADP_AWSCLI_CLOUDFRONT }}
 
 jobs:
   creator:
     runs-on: [self-hosted, Windows, X64]
     steps:
-      - name: Clean Cocos Creator cache
+      - name: Clean Cocos Creator caches
         run: |
-          $path = "$env:USERPROFILE\.CocosCreator"
-          if (Test-Path $path) { 
-            Remove-Item -Recurse -Force $path
-            Write-Host "Successfully deleted: $path"
-          } else {
-            Write-Host "Directory does not exist: $path"
-          }
-      - name: Clean Cocos Creator cache (temp)
-        run: |
-          $path = "$env:USERPROFILE\AppData\Local\Temp\CocosCreator\3.7.2\builder\engine"
-          if (Test-Path $path) { 
-            Remove-Item -Recurse -Force $path
-            Write-Host "Successfully deleted: $path"
-          } else {
-            Write-Host "Directory does not exist: $path"
+          $paths = @(
+            "$env:USERPROFILE\.CocosCreator",
+            "$env:USERPROFILE\AppData\Local\Temp\CocosCreator\${{ inputs.COCOS_CREATOR_VERSION || '3.7.2' }}\builder\engine"
+          )
+          foreach ($path in $paths) {
+            if (Test-Path $path) {
+              Remove-Item -Recurse -Force $path
+              Write-Host "Successfully deleted: $path"
+            } else {
+              Write-Host "Directory does not exist: $path"
+            }
           }
 
       - name: Setup branch env
-        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@test_slim_pipeline
         with:
           github_ref_name: ${{ github.ref_name }}
           environment: ${{ inputs.ENVIRONMENT }}
@@ -128,13 +116,8 @@ jobs:
           runner_name: ${{ runner.name }}
           deploy_env: ${{ env.BRANCH }}
 
-      - name: Create deploy path
-        uses: 5G-Games/Games-Common-CI/.github/actions/create-deploy-path@new_deploy
-        with:
-          game_id: ${{ inputs.GAME_ID }}
-
       - name: npm install
-        uses: 5G-Games/Games-Common-CI/.github/actions/npm-install@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/npm-install@test_slim_pipeline
         with:
           game_id: ${{ inputs.GAME_ID }}
 
@@ -180,27 +163,8 @@ jobs:
             node $script
           }
 
-      - name: Copy packages
-        uses: 5G-Games/Games-Common-CI/.github/actions/copy-packages@new_deploy
-        with:
-          game_id: ${{ inputs.GAME_ID }}
-
-      - name: Deploy part 1
-        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part1@new_deploy
-        with:
-          game_id: ${{ inputs.GAME_ID }}
-          deploy_type: ${{ env.DEPLOY_TYPE }}
-          deploy_str: ${{ env.DEPLOY_STR }}
-
-      - name: Deploy part 2
-        uses: 5G-Games/Games-Common-CI/.github/actions/deploy-part2@new_deploy
-        with:
-          game_id: ${{ inputs.GAME_ID }}
-          branch: ${{ env.CLONE_BRANCH }}
-          github_deploy: ${{ secrets.TOKEN }}
-
       - name: Upload S3
-        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@test_slim_pipeline
         with:
           game_id: ${{ inputs.GAME_ID }}
           s3_url: ${{ env.S3_URL }}
@@ -214,7 +178,7 @@ jobs:
       - name: Fix pack metadata (Content-Encoding br)
         shell: powershell
         run: |
-          $pack = Get-ChildItem "$env:INPUT_GAME_ID\assets\bundles.*.pack" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $pack = Get-ChildItem "game\$env:INPUT_GAME_ID\build\web-mobile\assets\bundles.*.pack" -ErrorAction SilentlyContinue | Select-Object -First 1
           if (-not $pack) { Write-Host "No .pack in build output, skipping"; exit 0 }
           if (-not (Get-Command aws -ErrorAction SilentlyContinue)) {
             Write-Warning ".pack found but aws cli is not installed on this runner; pack will be served WITHOUT Content-Encoding: br and players fall back to per-file HTTP. Install AWS CLI v2 (msi) to enable."
@@ -246,11 +210,9 @@ jobs:
           s3_url: ${{ env.S3_URL }}
 
       - name: CDN cache prune
-        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@new_deploy
+        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@test_slim_pipeline
         with:
           game_id: ${{ inputs.GAME_ID }}
-          branch: ${{ env.BRANCH }}
-          cdn_cfe_url: ${{ env.CDN_CFE_URL }}
           manifest_path: ${{ github.workspace }}\purge_manifest.txt
           s3_url: ${{ env.S3_URL }}
           cloud_flare_api: ${{ secrets.CLOUD_FLARE }}
