@@ -65,7 +65,7 @@ jobs:
           }
 
       - name: Setup branch env
-        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@test_slim_pipeline
+        uses: 5G-Games/Games-Common-CI/.github/actions/setup-branch-env@new_deploy
         with:
           github_ref_name: ${{ github.ref_name }}
           environment: ${{ inputs.ENVIRONMENT }}
@@ -117,7 +117,7 @@ jobs:
           deploy_env: ${{ env.BRANCH }}
 
       - name: npm install
-        uses: 5G-Games/Games-Common-CI/.github/actions/npm-install@test_slim_pipeline
+        uses: 5G-Games/Games-Common-CI/.github/actions/npm-install@new_deploy
         with:
           game_id: ${{ inputs.GAME_ID }}
 
@@ -164,7 +164,7 @@ jobs:
           }
 
       - name: Upload S3
-        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@test_slim_pipeline
+        uses: 5G-Games/Games-Common-CI/.github/actions/upload-s3@new_deploy
         with:
           game_id: ${{ inputs.GAME_ID }}
           s3_url: ${{ env.S3_URL }}
@@ -210,7 +210,7 @@ jobs:
           s3_url: ${{ env.S3_URL }}
 
       - name: CDN cache prune
-        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@test_slim_pipeline
+        uses: 5G-Games/Games-Common-CI/.github/actions/cdn-cache-prune@new_deploy
         with:
           game_id: ${{ inputs.GAME_ID }}
           manifest_path: ${{ github.workspace }}\purge_manifest.txt
