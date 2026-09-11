@@ -151,8 +151,6 @@ jobs:
         run: |
           $script = "game\${{ inputs.GAME_ID }}\build-templates\scripts\build-zip.js"
           if (Test-Path $script) {
-            $env:ENABLE_ZIP_BUNDLE = "${{ inputs.ENABLE_ZIP_BUNDLE }}"
-            $env:ENABLE_LOW_RES = "${{ inputs.ENABLE_LOW_RES }}"
             node $script
           }
 
