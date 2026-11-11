@@ -32,14 +32,16 @@ function walkMetaFiles(dir, out) {
   return out;
 }
 
-// compressSettings 可能出現在頂層 userData，也可能在 subMetas 裡，全部遞迴找出來
-function collectCompressSettings(node, out) {
+// compressSettings 可能出現在頂層 userData，也可能在 subMetas 裡，全部遞迴找出來；
+// 一併帶出最近一層的 uuid，subMeta 的設定錯誤才對得到正確的子資源
+function collectCompressSettings(node, ownerUuid, out) {
   if (Array.isArray(node)) {
-    for (const item of node) collectCompressSettings(item, out);
+    for (const item of node) collectCompressSettings(item, ownerUuid, out);
   } else if (node && typeof node === 'object') {
+    const uuid = typeof node.uuid === 'string' ? node.uuid : ownerUuid;
     for (const [key, value] of Object.entries(node)) {
-      if (key === 'compressSettings' && value && typeof value === 'object') out.push(value);
-      else collectCompressSettings(value, out);
+      if (key === 'compressSettings' && value && typeof value === 'object') out.push({ settings: value, uuid });
+      else collectCompressSettings(value, uuid, out);
     }
   }
   return out;
@@ -82,15 +84,16 @@ function main() {
       continue;
     }
 
-    for (const settings of collectCompressSettings(meta, [])) {
+    for (const { settings, uuid } of collectCompressSettings(meta, undefined, [])) {
       if (settings.useCompressTexture !== true) continue;
       checkedCount++;
       const presetId = settings.presetId;
       if (!presetId) {
-        violations.push({ relativePath, message: '開啟壓縮但未指定 presetId（會退回內建 preset，產出 astc/pkm/pvr）' });
+        violations.push({ relativePath, uuid, message: '開啟壓縮但未指定 presetId（會退回內建 preset，產出 astc/pkm/pvr）' });
       } else if (!(presetId in userPreset)) {
         violations.push({
           relativePath,
+          uuid,
           message: `presetId "${presetId}" 不存在於 settings/v2/packages/builder.json 的 userPreset`,
         });
       }
@@ -104,7 +107,17 @@ function main() {
     return 0;
   }
 
-  for (const { relativePath, message } of violations) annotate('error', relativePath, message);
+  for (const { relativePath, uuid, message } of violations) {
+    annotate('error', relativePath, `[uuid: ${uuid || '(none)'}] ${message}`);
+  }
+
+  // annotation 在 log 裡不好掃，另印一份對照表方便複製 uuid 到編輯器搜尋
+  console.log('\n  設定錯誤的資源：');
+  for (const { relativePath, uuid, message } of violations) {
+    console.log(`    uuid: ${uuid || '(none)'}`);
+    console.log(`    file: ${relativePath.replace(/\\/g, '/').replace(/\.meta$/, '')}`);
+    console.log(`    原因: ${message}\n`);
+  }
   console.log(`\n  ✗ ${violations.length} 個資源的壓縮設定有問題，請在編輯器重新選擇壓縮 preset 後再 build`);
   return 1;
 }
