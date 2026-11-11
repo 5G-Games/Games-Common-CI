@@ -1,0 +1,15 @@
+name: 'Check Texture Compress'
+description: 'Fail when a meta enables texture compression without a presetId that exists in builder.json'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Check texture compress presets
+      shell: cmd
+      run: node "%ACTION_PATH%\check-texture-compress.js" "game\%INPUT_GAME_ID%"
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}

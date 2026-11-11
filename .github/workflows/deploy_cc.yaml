@@ -139,6 +139,11 @@ jobs:
           game_id: ${{ inputs.GAME_ID }}
           branch: ${{ env.BRANCH }}
 
+      - name: Check texture compress presets
+        uses: 5G-Games/Games-Common-CI/.github/actions/check-texture-compress@new_deploy
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+
       - name: Build Cocos Mobile
         uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@new_deploy
         with:
