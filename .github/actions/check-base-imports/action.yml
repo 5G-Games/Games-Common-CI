@@ -1,0 +1,15 @@
+name: 'Check Base Imports'
+description: 'Fail when any script under assets/base imports from assets/game'
+inputs:
+  game_id:
+    description: 'Game ID'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - name: Check assets/base does not import assets/game
+      shell: cmd
+      run: node "%ACTION_PATH%\check-base-imports.js" "game\%INPUT_GAME_ID%"
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        INPUT_GAME_ID: ${{ inputs.game_id }}

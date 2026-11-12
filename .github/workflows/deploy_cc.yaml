@@ -144,6 +144,11 @@ jobs:
         with:
           game_id: ${{ inputs.GAME_ID }}
 
+      - name: Check base does not import game
+        uses: 5G-Games/Games-Common-CI/.github/actions/check-base-imports@new_deploy
+        with:
+          game_id: ${{ inputs.GAME_ID }}
+
       - name: Build Cocos Mobile
         uses: 5G-Games/Games-Common-CI/.github/actions/build-cocos-mobile@new_deploy
         with:
